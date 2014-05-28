@@ -105,6 +105,8 @@ A general workflow for getting started with the ClaraStream API might look like 
   likely inserting them into your shopping cart. 
 
 
+# API Resources
+
 # Group Product
 
 ## A Product [/product/{productId}]
@@ -119,7 +121,7 @@ top level 'container' that groups a set of Products. Read more about Projects be
 
 + Response 200 (application/json)
     + Body 
-    
+
             {
                 "error": null,
                 "product": {
@@ -164,6 +166,106 @@ top level 'container' that groups a set of Products. Read more about Projects be
             }
 
 
+## A Product by Sku [/product/sku/{sku}]
+
++ Paramaters
+    + sku (required, string) ... A base product sku to retreive. 
+
+### Get a Product by SKU 
+
++ Response 200 (application/json)
+
+        {
+            "error": null,
+            "product": {
+                "id": "537baffaa8e0921400e93ca4",
+                "sku": "clarastream-CEL-95560",
+                "name": "Celestron Nightscape 8300 CCD Camera",
+                "type": "simple",
+                "projectId": null,
+                "userId": "5301ddc1df759c16008b4578",
+                "variation": 0,
+                "imageMain": "clarastream-CEL-95560.jpg",
+                "images": [],
+                "price": "1699.95",
+                "description": "Celestrons ground-breaking Nightscape CCD Camera has a new addition to the lineup: Introducing the Nightscape 8300, the one shot color CCD camera featuring the highly acclaimed Kodak KAF-8300 sensor. The Nightscape 8300 provides 8.3 megapixels of resolution on this ultra-sensitive Kodak CCD. Camera control and image processing are made easy, fast and effective, thanks to the included AstroFX software. Additionally, the Nightscape 8300 is the most affordable feature-rich KAF-8300 CCD camera on the market!With Nightscape you get:SensitivityNightscapes ultra-sensitive KAF-8300 CCD easily detects subtle deep sky details. Capture the faint wisps of a colorful emission nebula, or image fine detail of a spiral galaxy millions of light years away. Youll be amazed how much faint detail you can detect in your time lapse astroimages.A Cool PerformerThe regulated thermoelectric cooling system with adjustable speed fan not only reduce the inherent CCD noise, but the temperature is also precisely regulated to your setting of choice, allowing you to take accurate calibration images. The camera electronics have been carefully engineered to minimize the read noise (only 8e- RMS) and provide the cleanest image data possible.Form FactorCompact four inch diameter design provides minimal obstruction needed for Fastar f/2 imaging. The round symmetrical aluminum cast body resembles the obstruction of the secondary mirror of a Cassegrain telescope ensuring a round star with minimal light diffraction. Additionally the spacing to sensor is the same distance as most DSLR cameras allowing compatibility with most standard DSLR t-adapters.Full ControlCelestrons intuitive AstroFX software takes you step-by-step from taking images to processing the final result. AstroFX gives you full control of your camera from temperature regulation, exposure control as well as computer assisted focusing for easy image acquisition. AstroFX knows just what to do with your images and calibration frames to create a final master image that's been stacked, stretched, sharpened, saturated and ready to share with your friends in a snap.System requirements:    Processor  Pentium or equivalent, or higher    Windows XP, Windows Vista, or Windows 7 (or higher), 32-bit or 64-bit    1GB RAM    Disk Space  500MB    Video Display minimum 1024x768, 16-bit color or higherAstroFX softwareIncluded with your Nightscape is Celestron's innovative AstroFX software. AstroFx takes you step-by-step from snapping an image to processing the final result",
+                "shortDescription": "Quick Overview Uses the famous KAF-8300 CCD that imagers have grown to love, due to the high resolution, low noise, great sensitivity and affordable cost.    A large 22.5mm diagonal CCD chip offers 8.3 megapixels of resolution. That means capturing a larger swatch of the sky with greater detail than similarly priced CCD cameras.    Nightscape 8300 is the most affordable feature-rich KAF-8300 camera readily available, retaining all of the advanced features found in more expensive cameras to obtain stunning astrophotos.    Regulated thermoelectric cooling and adjustable fan dramatically reduces thermal noise, producing superior images.    AstroFX software - takes you step-by-step from taking images to processing the final result.    The TEC and 16-bit A/D conversion provide lower noise and greater bit-depth than DSLR cameras, making the Nightscape 8300 an ideal upgrade for DSLR imagers who want to advance to CCD imaging and capture greater detail in every shot.    Internal mechanical shutter makes dark frame acquisition easy  no need to cap the telescope.    Internal 32MB SDRAM full frame memory buffer, ensures accurate and reliable image downloads    Specially designed IR-cut optical window with anti-reflection multi-coatings provides 94% (or greater) transmission of Hydrogen Alpha wavelength and maximum overall light transmission.    Celestrons design combines form and function: Elegant industrial design, innovative heat-sink and air-flow system for efficient cooling, and cylindrical body is Fastar-friendly.    Removable 2 nosepiece is threaded for 2 filters.    ASCOM drivers are included for use with many other popular imaging software programs.AstroFX Video Tutorials",
+                "status": "Disabled",
+                "extraOptions": {
+                    "status": "Disabled",
+                    "short_description": "Quick Overview Uses the famous KAF-8300 CCD that imagers have grown to love, due to the high resolution, low noise, great sensitivity and affordable cost.    A large 22.5mm diagonal CCD chip offers 8.3 megapixels of resolution. That means capturing a larger swatch of the sky with greater detail than similarly priced CCD cameras.    Nightscape 8300 is the most affordable feature-rich KAF-8300 camera readily available, retaining all of the advanced features found in more expensive cameras to obtain stunning astrophotos.    Regulated thermoelectric cooling and adjustable fan dramatically reduces thermal noise, producing superior images.    AstroFX software - takes you step-by-step from taking images to processing the final result.    The TEC and 16-bit A/D conversion provide lower noise and greater bit-depth than DSLR cameras, making the Nightscape 8300 an ideal upgrade for DSLR imagers who want to advance to CCD imaging and capture greater detail in every shot.    Internal mechanical shutter makes dark frame acquisition easy  no need to cap the telescope.    Internal 32MB SDRAM full frame memory buffer, ensures accurate and reliable image downloads    Specially designed IR-cut optical window with anti-reflection multi-coatings provides 94% (or greater) transmission of Hydrogen Alpha wavelength and maximum overall light transmission.    Celestrons design combines form and function: Elegant industrial design, innovative heat-sink and air-flow system for efficient cooling, and cylindrical body is Fastar-friendly.    Removable 2 nosepiece is threaded for 2 filters.    ASCOM drivers are included for use with many other popular imaging software programs.AstroFX Video Tutorials",
+                    "description": "Celestrons ground-breaking Nightscape CCD Camera has a new addition to the lineup: Introducing the Nightscape 8300, the one shot color CCD camera featuring the highly acclaimed Kodak KAF-8300 sensor. The Nightscape 8300 provides 8.3 megapixels of resolution on this ultra-sensitive Kodak CCD. Camera control and image processing are made easy, fast and effective, thanks to the included AstroFX software. Additionally, the Nightscape 8300 is the most affordable feature-rich KAF-8300 CCD camera on the market!With Nightscape you get:SensitivityNightscapes ultra-sensitive KAF-8300 CCD easily detects subtle deep sky details. Capture the faint wisps of a colorful emission nebula, or image fine detail of a spiral galaxy millions of light years away. Youll be amazed how much faint detail you can detect in your time lapse astroimages.A Cool PerformerThe regulated thermoelectric cooling system with adjustable speed fan not only reduce the inherent CCD noise, but the temperature is also precisely regulated to your setting of choice, allowing you to take accurate calibration images. The camera electronics have been carefully engineered to minimize the read noise (only 8e- RMS) and provide the cleanest image data possible.Form FactorCompact four inch diameter design provides minimal obstruction needed for Fastar f/2 imaging. The round symmetrical aluminum cast body resembles the obstruction of the secondary mirror of a Cassegrain telescope ensuring a round star with minimal light diffraction. Additionally the spacing to sensor is the same distance as most DSLR cameras allowing compatibility with most standard DSLR t-adapters.Full ControlCelestrons intuitive AstroFX software takes you step-by-step from taking images to processing the final result. AstroFX gives you full control of your camera from temperature regulation, exposure control as well as computer assisted focusing for easy image acquisition. AstroFX knows just what to do with your images and calibration frames to create a final master image that's been stacked, stretched, sharpened, saturated and ready to share with your friends in a snap.System requirements:    Processor  Pentium or equivalent, or higher    Windows XP, Windows Vista, or Windows 7 (or higher), 32-bit or 64-bit    1GB RAM    Disk Space  500MB    Video Display minimum 1024x768, 16-bit color or higherAstroFX softwareIncluded with your Nightscape is Celestron's innovative AstroFX software. AstroFx takes you step-by-step from snapping an image to processing the final result",
+                    "price": "1699.95",
+                    "type": "simple"
+                },
+                "categories": [
+                    {
+                        "id": "537b7f22dcd78939008b456b",
+                        "categoryId": 3,
+                        "name": "Default",
+                        "cartId": "536aeb80ec2ef423008b457d",
+                        "parentCategory": {
+                            "id": "537b7f22dcd78939008b456a",
+                            "categoryId": 2,
+                            "name": "Default Category"
+                        },
+                        "ancestors": [
+                            {
+                                "id": "537b7f22dcd78939008b4569",
+                                "categoryId": 1,
+                                "name": "Root Catalog"
+                            },
+                            {
+                                "id": "537b7f22dcd78939008b456a",
+                                "categoryId": 2,
+                                "name": "Default Category"
+                            }
+                        ],
+                        "children": [
+                            {
+                                "id": "537b7f22dcd78939008b456c",
+                                "categoryId": 4,
+                                "name": "Category1"
+                            },
+                            {
+                                "id": "537b7f22dcd78939008b456d",
+                                "categoryId": 5,
+                                "name": "Category2"
+                            }
+                        ]
+                    },
+                    {
+                        "id": "537b7f22dcd78939008b456c",
+                        "categoryId": 4,
+                        "name": "Category1",
+                        "cartId": "536aeb80ec2ef423008b457d",
+                        "parentCategory": {
+                            "id": "537b7f22dcd78939008b456b",
+                            "categoryId": 3,
+                            "name": "Default"
+                        },
+                        "ancestors": [
+                            {
+                                "id": "537b7f22dcd78939008b4569",
+                                "categoryId": 1,
+                                "name": "Root Catalog"
+                            },
+                            {
+                                "id": "537b7f22dcd78939008b456a",
+                                "categoryId": 2,
+                                "name": "Default Category"
+                            },
+                            {
+                                "id": "537b7f22dcd78939008b456b",
+                                "categoryId": 3,
+                                "name": "Default"
+                            }
+                        ],
+                        "children": []
+                    }
+                ]
+            }
+        }
 
 ## A New Product [/product]
 
