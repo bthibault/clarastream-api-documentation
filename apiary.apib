@@ -107,9 +107,9 @@ A general workflow for getting started with the ClaraStream API might look like 
 
 # Group Product
 
-## A single product [/product/{productId}]
+## A Product [/product/{productId}]
 
-A single Product object with all its details. One Product is either a) associated to a particular Project or b) a BASE Product. A Project is a
+Allows referencing a single specific Product object with all its details. One Product is either a) associated to a particular Project or b) a **BASE** Product. A Project is a
 top level 'container' that groups a set of Products. Read more about Projects below. A Base Product is the considered the master record of a particular product. 
 
 ### Retrieve a single product [GET]
@@ -163,6 +163,10 @@ top level 'container' that groups a set of Products. Read more about Projects be
                 }
             }
 
+
+
+## A New Product [/product]
+
 ### Create a single base product [POST]
 
 + Request (application/json)
@@ -211,10 +215,8 @@ top level 'container' that groups a set of Products. Read more about Projects be
         }
         
 
-
-
-## A product list [/product{?type}{&offset}{&limit}]
-Obtains the list of base products (products unassociated with projects and describing the current state 
+## A Product List [/product{?type}{&offset}{&limit}]
+Obtains the list of **base** products (products unassociated with projects and describing the current state 
 of a particular product), allowing for indication of type and paging behaviors.
 
 + Parameters
@@ -528,9 +530,12 @@ of a particular product), allowing for indication of type and paging behaviors.
             }  
 
 # Group Project 
-A single Project object that contains a the total number of SKUs associated within the project.
 
-## A single project [/project/{projectId}]
+## A Project [/project/{projectId}]
+
+A single Project object that contains all the information associated. A Project is typically a grouping of skus that some independenant batch processing will be performed on. 
+An example would be updating base products with new information, or exporting particular products with particular information. A Project is associated with a template and a particular shopping cart or remote endpoint. 
+
 
 ### Retrieve one project [GET]
 
@@ -552,8 +557,10 @@ A single Project object that contains a the total number of SKUs associated with
             }
         }
         
-### Add a project [POST]
-Create a new Project. 
+## Create a Project [/project]
+
+### Add a new project [POST]
+
  + Request (application/json) 
  
         {
@@ -576,8 +583,8 @@ Create a new Project.
             }
         }
         
-## A project's product list [/project/{projectId}/products{?type}{&offset}{&limit}]
-Obtains the list of products associated with a particular project, allowing for indication of type and paging behaviors.
+## A Project's Product list [/project/{projectId}/products{?type}{&offset}{&limit}]
+A list of products associated with a particular project, allowing for indication of type and paging behaviors.
 
 + Parameters
     + type (optional, string) ... type of products to retrieve in the list. 
@@ -804,7 +811,61 @@ Obtains the list of products associated with a particular project, allowing for 
                 ]
             }
         
+## A Product within a Project [/project/{projectId}/products]
+
+### Create a Product for a Project [POST]
+
+This represents a separate, unique instance of a product that is associated with a particular project. This product can later be used to update base products.
+
++ Request (application/json)
+
+        {
+            "productData":
+                {
+                    "sku": "ABC123",
+                    "name": "Sample Product", 
+                    "categories": [{"id": "537b80e3dcd78954008b456c"}]},
+                    "mainImageURL":"https://www.google.com/images/srpr/logo11w.png",
+                    "subImageURLs":
+                    [
+                         "https://s3.amazonaws.com/wwwclarastream.com/wp-content/uploads/2014/03/g3216.png",
+                         "https://s3.amazonaws.com/wwwclarastream.com/wp-content/uploads/2014/03/chart-arrow.png"
+                    ]
+                }
+        }
+
++ Response 200 (application/json)
+
+        {
+            "error": null,
+            "product": {
+                "id": "53860f5c2486ea0e0094687e",
+                "sku": "ABC123",
+                "name": "Test This",
+                "type": "simple",
+                "projectId": null,
+                "userId": "5301ddc1df759c16008b4578",
+                "variation": 0,
+                "images": [],
+                "extraOptions": {
+                    "type": "simple"
+                },
+                "categories": [
+                    {
+                        "id": ""537b80e3dcd78954008b456c",
+                        "parentCategory": null,
+                        "ancestors": [],
+                        "children": []
+                    }
+                ]
+            },
+            "imageProcessToken": "53b6e3c527c3777862119c4d"
+        }
+        
+# Group Template
+
 ## Template [/template/{templateId}]
+
 A single Template object that contains what attributes are mapped to a particular project for a particular cart.
 
 + Parameters
@@ -1115,7 +1176,333 @@ A single Template object that contains what attributes are mapped to a particula
             }  
         }
 
+
+## A New Template [/template?cartId={cartId}]
+
++ Parameters
+    + cartId (required, string) ... a particular endpoint or shopping cart id to associate to. 
+    This holds the data point mappings between ClaraStream and your endpoint. 
+
+### Create a new Template [POST]
+
++ Request (application/json) 
+
+        {}
+    
++ Response 200 (application/json) 
+
+        {
+            "error": null,
+            "token": "a14d7422257fccfab9371988",
+            "templateId": "5386351a4e41ac0e0074f71f"
+        }
+
+#Group Endpoint 
+
 #Group Image
 
 #Group Category
 
+## Category Tree [/category/cartId/{cartId}/]
+
+A category tree structure for one endpoint. Contains all categories for that endpoint with links to children, parents, and ancestors. 
+For ClaraStreams purposes when referencing a specific category use the "id" field. "categoryId" is meant to be an id used at the endpoint, e.g., in this result "categoryId: 46", would be Magento's category number. 
+"Root Catalog" is always the primary ancestor of every category tree. 
+
++ Parameters 
+    + cartId (required, string) ... a particular endpoint or shopping cart id. 
+
+### Get Category Tree [GET]
+
++ Response 200 (application/json) 
+    
+         {
+            "errors": null,
+            "categories": [
+                {
+                    "id": "536b0858904b6e27008b456c",
+                    "categoryId": 46,
+                    "name": "Category1",
+                    "cartId": "536aeb80ec2ef423008b457d",
+                    "parentCategory": {
+                        "id": "536b0858904b6e27008b456b",
+                        "categoryId": 45,
+                        "name": "Default"
+                    },
+                    "ancestors": [
+                        {
+                            "id": "536b0858904b6e27008b4569",
+                            "categoryId": 1,
+                            "name": "Root Catalog"
+                        },
+                        {
+                            "id": "536b0858904b6e27008b456a",
+                            "categoryId": 2,
+                            "name": "Default Category"
+                        },
+                        {
+                            "id": "536b0858904b6e27008b456b",
+                            "categoryId": 45,
+                            "name": "Default"
+                        }
+                    ],
+                    "children": []
+                },
+                {
+                    "id": "536b0858904b6e27008b456b",
+                    "categoryId": 45,
+                    "name": "Default",
+                    "cartId": "536aeb80ec2ef423008b457d",
+                    "parentCategory": {
+                        "id": "536b0858904b6e27008b456a",
+                        "categoryId": 2,
+                        "name": "Default Category"
+                    },
+                    "ancestors": [
+                        {
+                            "id": "536b0858904b6e27008b4569",
+                            "categoryId": 1,
+                            "name": "Root Catalog"
+                        },
+                        {
+                            "id": "536b0858904b6e27008b456a",
+                            "categoryId": 2,
+                            "name": "Default Category"
+                        }
+                    ],
+                    "children": [
+                        {
+                            "id": "536b0858904b6e27008b456c",
+                            "categoryId": 46,
+                            "name": "Category1"
+                        }
+                    ]
+                },
+                {
+                    "id": "536b0858904b6e27008b456a",
+                    "categoryId": 2,
+                    "name": "Default Category",
+                    "cartId": "536aeb80ec2ef423008b457d",
+                    "parentCategory": {
+                        "id": "536b0858904b6e27008b4569",
+                        "categoryId": 1,
+                        "name": "Root Catalog"
+                    },
+                    "ancestors": [
+                        {
+                            "id": "536b0858904b6e27008b4569",
+                            "categoryId": 1,
+                            "name": "Root Catalog"
+                        }
+                    ],
+                    "children": [
+                        {
+                            "id": "536b0858904b6e27008b456b",
+                            "categoryId": 45,
+                            "name": "Default"
+                        }
+                    ]
+                },
+                {
+                    "id": "536b0858904b6e27008b4569",
+                    "categoryId": 1,
+                    "name": "Root Catalog",
+                    "cartId": "536aeb80ec2ef423008b457d",
+                    "parentCategory": {
+                        "id": null,
+                        "categoryId": null,
+                        "name": null
+                    },
+                    "ancestors": [],
+                    "children": [
+                        {
+                            "id": "536b0858904b6e27008b456a",
+                            "categoryId": 2,
+                            "name": "Default Category"
+                        }
+                    ]
+                },
+                {
+                    "id": "537b7f22dcd78939008b456c",
+                    "categoryId": 4,
+                    "name": "Category1",
+                    "cartId": "536aeb80ec2ef423008b457d",
+                    "parentCategory": {
+                        "id": "537b7f22dcd78939008b456b",
+                        "categoryId": 3,
+                        "name": "Default"
+                    },
+                    "ancestors": [
+                        {
+                            "id": "537b7f22dcd78939008b4569",
+                            "categoryId": 1,
+                            "name": "Root Catalog"
+                        },
+                        {
+                            "id": "537b7f22dcd78939008b456a",
+                            "categoryId": 2,
+                            "name": "Default Category"
+                        },
+                        {
+                            "id": "537b7f22dcd78939008b456b",
+                            "categoryId": 3,
+                            "name": "Default"
+                        }
+                    ],
+                    "children": []
+                },
+                {
+                    "id": "537b7f22dcd78939008b456d",
+                    "categoryId": 5,
+                    "name": "Category2",
+                    "cartId": "536aeb80ec2ef423008b457d",
+                    "parentCategory": {
+                        "id": "537b7f22dcd78939008b456b",
+                        "categoryId": 3,
+                        "name": "Default"
+                    },
+                    "ancestors": [
+                        {
+                            "id": "537b7f22dcd78939008b4569",
+                            "categoryId": 1,
+                            "name": "Root Catalog"
+                        },
+                        {
+                            "id": "537b7f22dcd78939008b456a",
+                            "categoryId": 2,
+                            "name": "Default Category"
+                        },
+                        {
+                            "id": "537b7f22dcd78939008b456b",
+                            "categoryId": 3,
+                            "name": "Default"
+                        }
+                    ],
+                    "children": []
+                },
+                {
+                    "id": "537b7f22dcd78939008b456b",
+                    "categoryId": 3,
+                    "name": "Default",
+                    "cartId": "536aeb80ec2ef423008b457d",
+                    "parentCategory": {
+                        "id": "537b7f22dcd78939008b456a",
+                        "categoryId": 2,
+                        "name": "Default Category"
+                    },
+                    "ancestors": [
+                        {
+                            "id": "537b7f22dcd78939008b4569",
+                            "categoryId": 1,
+                            "name": "Root Catalog"
+                        },
+                        {
+                            "id": "537b7f22dcd78939008b456a",
+                            "categoryId": 2,
+                            "name": "Default Category"
+                        }
+                    ],
+                    "children": [
+                        {
+                            "id": "537b7f22dcd78939008b456c",
+                            "categoryId": 4,
+                            "name": "Category1"
+                        },
+                        {
+                            "id": "537b7f22dcd78939008b456d",
+                            "categoryId": 5,
+                            "name": "Category2"
+                        }
+                    ]
+                },
+                {
+                    "id": "537b7f22dcd78939008b456a",
+                    "categoryId": 2,
+                    "name": "Default Category",
+                    "cartId": "536aeb80ec2ef423008b457d",
+                    "parentCategory": {
+                        "id": "537b7f22dcd78939008b4569",
+                        "categoryId": 1,
+                        "name": "Root Catalog"
+                    },
+                    "ancestors": [
+                        {
+                            "id": "537b7f22dcd78939008b4569",
+                            "categoryId": 1,
+                            "name": "Root Catalog"
+                        }
+                    ],
+                    "children": [
+                        {
+                            "id": "537b7f22dcd78939008b456b",
+                            "categoryId": 3,
+                            "name": "Default"
+                        }
+                    ]
+                },
+                {
+                    "id": "537b7f22dcd78939008b4569",
+                    "categoryId": 1,
+                    "name": "Root Catalog",
+                    "cartId": "536aeb80ec2ef423008b457d",
+                    "parentCategory": {
+                        "id": null,
+                        "categoryId": null,
+                        "name": null
+                    },
+                    "ancestors": [],
+                    "children": [
+                        {
+                            "id": "537b7f22dcd78939008b456a",
+                            "categoryId": 2,
+                            "name": "Default Category"
+                        }
+                    ]
+                }
+            ]
+        }
+
+## A Category [/category/{categoryId}]
+
++ Parameters
+    + categoryId (required, string) ... the ClaraStream category Id to retreive.
+    
+
+### Get a Category [GET]
+
++ Response 200 (application/json)
+
+        {
+            "error": null,
+            "category": {
+                "id": "536b0858904b6e27008b456c",
+                "categoryId": 46,
+                "name": "Category1",
+                "cartId": "536aeb80ec2ef423008b457d",
+                "parentCategory": {
+                    "id": "536b0858904b6e27008b456b",
+                    "categoryId": 45,
+                    "name": "Default"
+                },
+                "ancestors": [
+                    {
+                        "id": "536b0858904b6e27008b4569",
+                        "categoryId": 1,
+                        "name": "Root Catalog"
+                    },
+                    {
+                        "id": "536b0858904b6e27008b456a",
+                        "categoryId": 2,
+                        "name": "Default Category"
+                    },
+                    {
+                        "id": "536b0858904b6e27008b456b",
+                        "categoryId": 45,
+                        "name": "Default"
+                    }
+                ],
+                "children": []
+            }
+        }
+ 
+ 
