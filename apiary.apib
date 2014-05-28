@@ -1,0 +1,1121 @@
+FORMAT: 1A
+HOST: https://services.clarastream.com
+
+# ClaraStream Services
+ClaraStream Web Service API is a *product information management* service.
+
+# Authentication
+The ClaraStream API uses basic authentication. Currently each and every request requires authentication
+in the header of the request. 
+There is no session based authentication until we make the switch to OAuth in upcoming releases. 
+
+# Getting Started
+
+## Creating an endpoint
+
+A good place to start is to make a "listener endpoint" for your application. This will receive operation requests from ClaraStream, such as starting a sync.
+Without creating this endpoint ClaraStream will have disabled functionality in the user interface. Users will not be able to login into ClaraStream and hit the sync button for instance. 
+
+The basic idea of syncing products to your website, is that a user tells ClaraStream to sync a specific data set. 
+ClaraStream then sends a request to your machine, and your machine then makes a request back to ClaraStream to pull down the data that was asked for. 
+Generally its much quicker to pull information to you. 
+
+Here is a sample endpoint using Node and Express: 
+
+```
+var express = require('express');
+var app = express();
+var http= require('http');
+
+app.use(express.bodyParser()); 
+
+// public endpoint to listen for ClaraStream sync request
+app.post('/sync', function(req, res) {
+    // Information ClaraStream will pass you as part of the POST request
+    var timestamp = new Date().toISOString();
+    var userId = "" + req.body.userId;
+    var projectId = "" + req.body.projectId;
+    var imageBaseURL = "" + req.body.imageBaseURL;
+    var syncImages = "" + req.body.syncImages;
+    var allProducts = "" + req.body.allProducts;
+ 
+    console.log("[SYNC] timestamp = " + timestamp);
+    console.log("[SYNC] userId = " + userId);
+    console.log("[SYNC] projectId = " + projectId);
+    console.log("[SYNC] imageBaseURL = " + imageBaseURL);
+    console.log("[SYNC] syncImages = " + syncImages);
+    console.log("[SYNC] allProducts = " + allProducts);
+ 
+     var username = {Clarastream USERNAME to operate as};
+     var base64up = {base64 encoded string of "clarastream_username:password"} 
+
+    var requestOptions = {
+        host: "https://services.clarastream.com",
+        port: '443',
+        path: '/project/' + projectId + "?masterUserName=" + username
+        method: 'GET',
+        "Content-Type": "application/json;charset=utf-8",
+        "Authorization": "Basic " + base64up
+    };
+
+    // Make an outgoing request to ask for products
+    var request = 
+    http.request(requestOptions, function(res) {
+        console.log('STATUS: ' + res.statusCode);
+          console.log('HEADERS: ' + JSON.stringify(res.headers));
+        res.setEncoding('utf8');
+        
+        res.on('data', function(chunk) {
+            responseStr += chunk;i'
+            console.log('Response: ' + chunk);
+        });
+
+        res.on('end', function() {
+            callback(responseStr);
+        })
+
+    });
+
+    post_req.on('error', function(err) {
+             console.error('Problem with HTTP request: ' + e.message);
+    });
+
+    post_req.end();
+
+});
+
+app.listen(3000);
+```
+
+## Workflow Examples 
+
+### Basic 
+A general workflow for getting started with the ClaraStream API might look like this: 
+
++ Create a request listener (see above). 
++ Create a new connection to your listener from within ClaraStream's UI.
++ Push in categories from your site into ClaraStream via the API.
++ Create a template using ClaraStream's API by first creating a blank template, 
+  then pushing product attributes to that template. 
+    + This allows front end users to manipulate and map your applications product data from within
+      the ClaraStream UI.
++ The ClaraStream UI user can now upload products which will map to categories and data points
+  and trigger sync that data. If you've set up a ClaraStream request listener, its now up to you
+  to get the products from a data set (Project) and use them in your particular application - most
+  likely inserting them into your shopping cart. 
+
+
+# Group Product
+
+## A single product [/product/{productId}]
+
+A single Product object with all its details. One Product is either a) associated to a particular Project or b) a BASE Product. A Project is a
+top level 'container' that groups a set of Products. Read more about Projects below. A Base Product is the considered the master record of a particular product. 
+
+### Retrieve a single product [GET]
+
++ Parameters
+    + productId (required, string) ... productId of the product to retreive. 
+
++ Response 200 (application/json)
+    + Body 
+    
+            {
+                "error": null,
+                "product": {
+                    "id": "52fe3fe024e7374b008b4587",
+                    "sku": "145-004-G",
+                    "name": "Mika Opposition Studs",
+                    "projectId": "52fe3fdd911b6118008b4644",
+                    "userId": "50f74b1be499d8e107001d5a",
+                    "variation": 0,
+                    "imageMain": null,
+                    "images": null,
+                    "categories": [],
+                    "price": "30",
+                    "description": null,
+                    "shortDescription": "<ul><li>Studs measure 1/4'' by 1/8''</li><li>Ear post</li><li>18k gold plated</li></ul>",
+                    "status": "Disabled",
+                    "extraOptions": {
+                        "tax_class_id": "Taxable Goods",
+                        "price": "30",
+                        "store": "",
+                        "color": "Gold",
+                        "product_websites": [
+                            "retail",
+                            "wholesale",
+                            "media"
+                        ],
+                        "type": "simple",
+                        "style": null,
+                        "visibility": "Not Visible Individually",
+                        "status": "Disabled",
+                        "state": "Active",
+                        "options_container": "Block after Info Column",
+                        "attribute_set": "Earrings",
+                        "delivery_date": "5/15/14",
+                        "short_description": "<ul><li>Studs measure 1/4'' by 1/8''</li><li>Ear post</li><li>18k gold plated</li></ul>",
+                        "hardware": "Gold",
+                        "links_configurable_skus": null,
+                        "size": null
+                    },
+                    
+                }
+            }
+
+### Create a single base product [POST]
+
++ Request (application/json)
+
+        {
+            "productData":
+                {
+                    "sku": "ABC123",
+                    "name": "Sample Product", 
+                    "categories": [{"id": "537b80e3dcd78954008b456c"}]},
+                    "mainImageURL":"https://www.google.com/images/srpr/logo11w.png",
+                    "subImageURLs":
+                    [
+                         "https://s3.amazonaws.com/wwwclarastream.com/wp-content/uploads/2014/03/g3216.png",
+                         "https://s3.amazonaws.com/wwwclarastream.com/wp-content/uploads/2014/03/chart-arrow.png"
+                    ]
+                }
+        }
+
++ Response 200 (application/json)
+
+        {
+            "error": null,
+            "product": {
+                "id": "53860f5c2486ea0e0094687e",
+                "sku": "ABC123",
+                "name": "Test This",
+                "type": "simple",
+                "projectId": null,
+                "userId": "5301ddc1df759c16008b4578",
+                "variation": 0,
+                "images": [],
+                "extraOptions": {
+                    "type": "simple"
+                },
+                "categories": [
+                    {
+                        "id": ""537b80e3dcd78954008b456c",
+                        "parentCategory": null,
+                        "ancestors": [],
+                        "children": []
+                    }
+                ]
+            },
+            "imageProcessToken": "53b6e3c527c3777862119c4d"
+        }
+        
+
+
+
+## A product list [/product{?type}{&offset}{&limit}]
+Obtains the list of base products (products unassociated with projects and describing the current state 
+of a particular product), allowing for indication of type and paging behaviors.
+
++ Parameters
+    + type (optional, string) ... type of products to retrieve in the list. 
+    + offset (optional, int) ... starting index for products to include within the list (useful for paging). 
+    + limit (optional, int) ... maximum number of products to include in the retrieved list (useful for paging). 
+
+### Retrieve a list of products [GET]
+
++ Response 200 (application/json)
+    + Body 
+    
+            {
+                "errors": null,
+                "products": [
+                    {
+                        "id": "535de9b56b82540b0048d039",
+                        "sku": "clarastream-CEL-95560",
+                        "name": "Celestron Nightscape 8300 CCD Camera",
+                        "type": "simple",
+                        "userId": "5301ddc1df759c16008b4578",
+                        "variation": 0,
+                        "images": [],
+                        "price": "1699.95",
+                        "description": "Celestrons ground-breaking Nightscape CCD Camera has a new addition to the lineup: Introducing the Nightscape 8300, the one shot color CCD camera featuring the highly acclaimed Kodak KAF-8300 sensor. The Nightscape 8300 provides 8.3 megapixels of resolution on this ultra-sensitive Kodak CCD. Camera control and image processing are made easy, fast and effective, thanks to the included AstroFX software. Additionally, the Nightscape 8300 is the most affordable feature-rich KAF-8300 CCD camera on the market!With Nightscape you get:SensitivityNightscapes ultra-sensitive KAF-8300 CCD easily detects subtle deep sky details. Capture the faint wisps of a colorful emission nebula, or image fine detail of a spiral galaxy millions of light years away. Youll be amazed how much faint detail you can detect in your time lapse astroimages.A Cool PerformerThe regulated thermoelectric cooling system with adjustable speed fan not only reduce the inherent CCD noise, but the temperature is also precisely regulated to your setting of choice, allowing you to take accurate calibration images. The camera electronics have been carefully engineered to minimize the read noise (only 8e- RMS) and provide the cleanest image data possible.Form FactorCompact four inch diameter design provides minimal obstruction needed for Fastar f/2 imaging. The round symmetrical aluminum cast body resembles the obstruction of the secondary mirror of a Cassegrain telescope ensuring a round star with minimal light diffraction. Additionally the spacing to sensor is the same distance as most DSLR cameras allowing compatibility with most standard DSLR t-adapters.Full ControlCelestrons intuitive AstroFX software takes you step-by-step from taking images to processing the final result. AstroFX gives you full control of your camera from temperature regulation, exposure control as well as computer assisted focusing for easy image acquisition. AstroFX knows just what to do with your images and calibration frames to create a final master image that's been stacked, stretched, sharpened, saturated and ready to share with your friends in a snap.System requirements:    Processor  Pentium or equivalent, or higher    Windows XP, Windows Vista, or Windows 7 (or higher), 32-bit or 64-bit    1GB RAM    Disk Space  500MB    Video Display minimum 1024x768, 16-bit color or higherAstroFX softwareIncluded with your Nightscape is Celestron's innovative AstroFX software. AstroFx takes you step-by-step from snapping an image to processing the final result",
+                        "shortDescription": "Quick Overview    Uses the famous KAF-8300 CCD that imagers have grown to love, due to the high resolution, low noise, great sensitivity and affordable cost.    A large 22.5mm diagonal CCD chip offers 8.3 megapixels of resolution. That means capturing a larger swatch of the sky with greater detail than similarly priced CCD cameras.    Nightscape 8300 is the most affordable feature-rich KAF-8300 camera readily available, retaining all of the advanced features found in more expensive cameras to obtain stunning astrophotos.    Regulated thermoelectric cooling and adjustable fan dramatically reduces thermal noise, producing superior images.    AstroFX software - takes you step-by-step from taking images to processing the final result.    The TEC and 16-bit A/D conversion provide lower noise and greater bit-depth than DSLR cameras, making the Nightscape 8300 an ideal upgrade for DSLR imagers who want to advance to CCD imaging and capture greater detail in every shot.    Internal mechanical shutter makes dark frame acquisition easy  no need to cap the telescope.    Internal 32MB SDRAM full frame memory buffer, ensures accurate and reliable image downloads    Specially designed IR-cut optical window with anti-reflection multi-coatings provides 94% (or greater) transmission of Hydrogen Alpha wavelength and maximum overall light transmission.    Celestrons design combines form and function: Elegant industrial design, innovative heat-sink and air-flow system for efficient cooling, and cylindrical body is Fastar-friendly.    Removable 2 nosepiece is threaded for 2 filters.    ASCOM drivers are included for use with many other popular imaging software programs.AstroFX Video Tutorials",
+                        "status": "Disabled",
+                        "extraOptions": {
+                            "status": "Disabled",
+                            "short_description": "Quick Overview    Uses the famous KAF-8300 CCD that imagers have grown to love, due to the high resolution, low noise, great sensitivity and affordable cost.    A large 22.5mm diagonal CCD chip offers 8.3 megapixels of resolution. That means capturing a larger swatch of the sky with greater detail than similarly priced CCD cameras.    Nightscape 8300 is the most affordable feature-rich KAF-8300 camera readily available, retaining all of the advanced features found in more expensive cameras to obtain stunning astrophotos.    Regulated thermoelectric cooling and adjustable fan dramatically reduces thermal noise, producing superior images.    AstroFX software - takes you step-by-step from taking images to processing the final result.    The TEC and 16-bit A/D conversion provide lower noise and greater bit-depth than DSLR cameras, making the Nightscape 8300 an ideal upgrade for DSLR imagers who want to advance to CCD imaging and capture greater detail in every shot.    Internal mechanical shutter makes dark frame acquisition easy  no need to cap the telescope.    Internal 32MB SDRAM full frame memory buffer, ensures accurate and reliable image downloads    Specially designed IR-cut optical window with anti-reflection multi-coatings provides 94% (or greater) transmission of Hydrogen Alpha wavelength and maximum overall light transmission.    Celestrons design combines form and function: Elegant industrial design, innovative heat-sink and air-flow system for efficient cooling, and cylindrical body is Fastar-friendly.    Removable 2 nosepiece is threaded for 2 filters.    ASCOM drivers are included for use with many other popular imaging software programs.AstroFX Video Tutorials",
+                            "description": "Celestrons ground-breaking Nightscape CCD Camera has a new addition to the lineup: Introducing the Nightscape 8300, the one shot color CCD camera featuring the highly acclaimed Kodak KAF-8300 sensor. The Nightscape 8300 provides 8.3 megapixels of resolution on this ultra-sensitive Kodak CCD. Camera control and image processing are made easy, fast and effective, thanks to the included AstroFX software. Additionally, the Nightscape 8300 is the most affordable feature-rich KAF-8300 CCD camera on the market!With Nightscape you get:SensitivityNightscapes ultra-sensitive KAF-8300 CCD easily detects subtle deep sky details. Capture the faint wisps of a colorful emission nebula, or image fine detail of a spiral galaxy millions of light years away. Youll be amazed how much faint detail you can detect in your time lapse astroimages.A Cool PerformerThe regulated thermoelectric cooling system with adjustable speed fan not only reduce the inherent CCD noise, but the temperature is also precisely regulated to your setting of choice, allowing you to take accurate calibration images. The camera electronics have been carefully engineered to minimize the read noise (only 8e- RMS) and provide the cleanest image data possible.Form FactorCompact four inch diameter design provides minimal obstruction needed for Fastar f/2 imaging. The round symmetrical aluminum cast body resembles the obstruction of the secondary mirror of a Cassegrain telescope ensuring a round star with minimal light diffraction. Additionally the spacing to sensor is the same distance as most DSLR cameras allowing compatibility with most standard DSLR t-adapters.Full ControlCelestrons intuitive AstroFX software takes you step-by-step from taking images to processing the final result. AstroFX gives you full control of your camera from temperature regulation, exposure control as well as computer assisted focusing for easy image acquisition. AstroFX knows just what to do with your images and calibration frames to create a final master image that's been stacked, stretched, sharpened, saturated and ready to share with your friends in a snap.System requirements:    Processor  Pentium or equivalent, or higher    Windows XP, Windows Vista, or Windows 7 (or higher), 32-bit or 64-bit    1GB RAM    Disk Space  500MB    Video Display minimum 1024x768, 16-bit color or higherAstroFX softwareIncluded with your Nightscape is Celestron's innovative AstroFX software. AstroFx takes you step-by-step from snapping an image to processing the final result",
+                            "price": "1699.95",
+                            "type": "simple"
+                        },
+                        "categories": []
+                    },
+                    {
+                        "id": "535de9b36b82540b0048d034",
+                        "sku": "clarastream-CEL-11111-c0",
+                        "name": "Celestron Skyris 618M",
+                        "type": "simple",
+                        "userId": "5301ddc1df759c16008b4578",
+                        "variation": 0,
+                        "images": [],
+                        "price": "499.95",
+                        "description": "Whether you're an advanced user or a beginner, you'll love creating beautiful astroimages with the Skyris astronomical CCD camera. Capture the Sun, Moon, and planets like never before and create crisp, high-resolution images. Skyris cameras are the first to offer ultra-fast USB 3.0 connections combined with the most popular Sony CCD chips used for planetary imaging. Skyris also features a Celestron-designed camera body which helps dissipate heat to minimize the effect of thermal noise on the CCD.Celestron Partners with The Imaging SourceFor years, The Imaging Source has provided amateur astronomers with high-quality CCD cameras that elevate amateur planetary imaging from a casual hobby into an art form. The Imaging Source's astronomical cameras are known for high quality, value, and performance. Now, Celestron is proud to partner with The Imaging Source on the Skyris line.Skyris 618C using the Sony ICX618ALA CCD SensorSome of the world's most advanced planetary imagers choose this Sony CCD sensor. It is perfectly suited for planetary imaging due to its speed, sensitivity, pixel size, and chip size. With the 618C, you'll be able to image up to 120 frames per second. You'll gather more data in less time, and capture brief moments of stable air to create the sharpest planetary images. This small chip features ample pixel size, making it the ideal match for long focal length telescopes like the Schmidt-Cassegrain and EdgeHD. Monochrome Sensor for Maximum SensitivityThe Skyris 618M is a monochrome camera, offering you the most senstivity for capturing the best possible astroimages. Either use the camera by itself to capture stunning  black-and-white images of the Moon and planets, or attach your own filters and filter wheel to create your own color planetary images. Celestron has designed the Skyris Filter Wheel as the perfect companion to Skyris monochrome cameras.Skyris cameras do not have an optical window. This makes cleaning your camera easier and ensures maximum light transmission with no risk of internal reflections.Included Celestron iCap SoftwareAll Skyris cameras include Celestron iCap capture software and stacking software, for Windows systems only. iCap software allows you to easily control the camera, snap your images or movie file, and export them. Next, you'll bring your images or movies into the stacking software, where you can automatically filter the best images and stack them to create your masterpiece.Using Skyris as an AutoguiderEquipped with Sony EXview HAD CCD sensors, Skyris cameras make excellent autoguiders.  If used with a Celestron mount, Skyris can be connected as a DirectShow device or WDM-style webcam. Simply plug the hand controller into the supplied serial cable and use a USB to RS-232 Adapter (not included).  The camera works with popular software like MaxIm DL or freeware like PHD Guiding. Other non-Celestron mounts work with a GPUSB available from Shoestring Astronomy to use with the same software programs, instantly turning your Skyris camera into a high-end autoguider that plugs into the ST-4 autoguider port on your mount. Learn more on our Support Tab.  Included accessories: 1.25\" nosepiece, iCap software CD, 10' USB 3.0 cable, instruction manual.",
+                        "shortDescription": "Quick OverviewIndustry-acclaimed Sony EXview HAD ICX618ALA monochrome CCD sensorHigh-speed USB 3.0 connection provides fastest possible frame rate (also backwards compatible with USB 2.0)Downloads up to 120 frames per second, acquiring more data in less time12-bit image output provides superior dynamic rangeIncludes capture and stacking software",
+                        "status": "Disabled",
+                        "extraOptions": {
+                            "status": "Disabled",
+                            "short_description": "Quick OverviewIndustry-acclaimed Sony EXview HAD ICX618ALA monochrome CCD sensorHigh-speed USB 3.0 connection provides fastest possible frame rate (also backwards compatible with USB 2.0)Downloads up to 120 frames per second, acquiring more data in less time12-bit image output provides superior dynamic rangeIncludes capture and stacking software",
+                            "description": "Whether you're an advanced user or a beginner, you'll love creating beautiful astroimages with the Skyris astronomical CCD camera. Capture the Sun, Moon, and planets like never before and create crisp, high-resolution images. Skyris cameras are the first to offer ultra-fast USB 3.0 connections combined with the most popular Sony CCD chips used for planetary imaging. Skyris also features a Celestron-designed camera body which helps dissipate heat to minimize the effect of thermal noise on the CCD.Celestron Partners with The Imaging SourceFor years, The Imaging Source has provided amateur astronomers with high-quality CCD cameras that elevate amateur planetary imaging from a casual hobby into an art form. The Imaging Source's astronomical cameras are known for high quality, value, and performance. Now, Celestron is proud to partner with The Imaging Source on the Skyris line.Skyris 618C using the Sony ICX618ALA CCD SensorSome of the world's most advanced planetary imagers choose this Sony CCD sensor. It is perfectly suited for planetary imaging due to its speed, sensitivity, pixel size, and chip size. With the 618C, you'll be able to image up to 120 frames per second. You'll gather more data in less time, and capture brief moments of stable air to create the sharpest planetary images. This small chip features ample pixel size, making it the ideal match for long focal length telescopes like the Schmidt-Cassegrain and EdgeHD. Monochrome Sensor for Maximum SensitivityThe Skyris 618M is a monochrome camera, offering you the most senstivity for capturing the best possible astroimages. Either use the camera by itself to capture stunning  black-and-white images of the Moon and planets, or attach your own filters and filter wheel to create your own color planetary images. Celestron has designed the Skyris Filter Wheel as the perfect companion to Skyris monochrome cameras.Skyris cameras do not have an optical window. This makes cleaning your camera easier and ensures maximum light transmission with no risk of internal reflections.Included Celestron iCap SoftwareAll Skyris cameras include Celestron iCap capture software and stacking software, for Windows systems only. iCap software allows you to easily control the camera, snap your images or movie file, and export them. Next, you'll bring your images or movies into the stacking software, where you can automatically filter the best images and stack them to create your masterpiece.Using Skyris as an AutoguiderEquipped with Sony EXview HAD CCD sensors, Skyris cameras make excellent autoguiders.  If used with a Celestron mount, Skyris can be connected as a DirectShow device or WDM-style webcam. Simply plug the hand controller into the supplied serial cable and use a USB to RS-232 Adapter (not included).  The camera works with popular software like MaxIm DL or freeware like PHD Guiding. Other non-Celestron mounts work with a GPUSB available from Shoestring Astronomy to use with the same software programs, instantly turning your Skyris camera into a high-end autoguider that plugs into the ST-4 autoguider port on your mount. Learn more on our Support Tab.  Included accessories: 1.25\" nosepiece, iCap software CD, 10' USB 3.0 cable, instruction manual.",
+                            "price": "499.95",
+                            "type": "simple"
+                        },
+                        "categories": []
+                    },
+                    {
+                        "id": "535de9b56b82540b0048d038",
+                        "sku": "clarastream-CEL-11111-c1",
+                        "name": "Celestron Skyris 618C",
+                        "type": "simple",
+                        "userId": "5301ddc1df759c16008b4578",
+                        "variation": 0,
+                        "images": [],
+                        "price": "499.95",
+                        "description": "Whether you're an advanced user or a beginner, you'll love creating beautiful astroimages with the Skyris astronomical CCD camera. Capture the Sun, Moon, and planets like never before and create crisp, high-resolution images. Skyris cameras are the first to offer ultra-fast USB 3.0 connections combined with the most popular Sony CCD chips used for planetary imaging.Skyris also features a Celestron-designed camera body which helps dissipate heat to minimize the effect of thermal noise on the CCD.Celestron Partners with The Imaging SourceFor years, The Imaging Source has provided amateur astronomers with high-quality CCD cameras that elevate amateur planetary imaging from a casual hobby into an art form. The Imaging Source's astronomical cameras are known for high quality, value, and performance. Now, Celestron is proud to partner with The Imaging Source on the Skyris line.Skyris 618C using the Sony ICX618AQA CCD SensorSome of the world's most advanced planetary imagers choose this Sony CCD sensor. It is perfectly suited for planetary imaging due to its speed, sensitivity, pixel size, and chip size. With the 618C, you'll be able to image up to 120 frames per second. You'll gather more data in less time, and capture brief moments of stable air to create the sharpest planetary images. This small chip features ample pixel size, making it the ideal match for long focal length telescopes like the Schmidt-Cassegrain and EdgeHD.One-Shot ColorThe Skyris 618C is a one-shot color camera. That means you can capture full-color images instantly. There's no need to spend time imaging the same target multiple times to capture different colors. You also won't need to invest in filters and a filter wheel, making the 618C an economical choice. Skyris cameras do not have an optical window. This makes cleaning your camera easier and ensures maximum light transmission with no risk of internal reflections.Check out the availableSkyris IR-Block Filter, designed especially for Skyris one-shot color cameras.Included Celestron iCap SoftwareAll Skyris cameras include Celestron iCap capture software and stacking software, for Windows systems only. iCap software allows you to easily control the camera, snap your images or movie file, and export them. Next, you'll bring your images or movies into the stacking software, where you can automatically filter the best images and stack them to create your masterpiece.Using Skyris as an AutoguiderEquipped with Sony EXview HAD CCD sensors, Skyris cameras make excellent autoguiders. If used with a Celestron mount,Skyris can be connected as a DirectShow device or WDM-style webcam.Simply plug the hand controller into the supplied serial cable and use aUSB to RS-232 Adapter(not included). The camera works with popular software like MaxIm DL or freeware like PHD Guiding. Other non-Celestron mounts work with a GPUSB available from Shoestring Astronomy to use with the same software programs, instantly turning your Skyris camera into a high-end autoguider that plugs into the ST-4 autoguider port on your mount.",
+                        "shortDescription": "Quick Overview    Industry-acclaimed Sony EXview HAD ICX618AQA color CCD sensor    High-speed USB 3.0 connection provides fastest possible frame rate (also backwards compatible with USB 2.0)    Downloads up to 120 frames per second, acquiring more data in less time    12-bit image output provides superior dynamic range    Includes capture and stacking software",
+                        "status": "Enabled",
+                        "extraOptions": {
+                            "status": "Enabled",
+                            "short_description": "Quick Overview    Industry-acclaimed Sony EXview HAD ICX618AQA color CCD sensor    High-speed USB 3.0 connection provides fastest possible frame rate (also backwards compatible with USB 2.0)    Downloads up to 120 frames per second, acquiring more data in less time    12-bit image output provides superior dynamic range    Includes capture and stacking software",
+                            "description": "Whether you're an advanced user or a beginner, you'll love creating beautiful astroimages with the Skyris astronomical CCD camera. Capture the Sun, Moon, and planets like never before and create crisp, high-resolution images. Skyris cameras are the first to offer ultra-fast USB 3.0 connections combined with the most popular Sony CCD chips used for planetary imaging.Skyris also features a Celestron-designed camera body which helps dissipate heat to minimize the effect of thermal noise on the CCD.Celestron Partners with The Imaging SourceFor years, The Imaging Source has provided amateur astronomers with high-quality CCD cameras that elevate amateur planetary imaging from a casual hobby into an art form. The Imaging Source's astronomical cameras are known for high quality, value, and performance. Now, Celestron is proud to partner with The Imaging Source on the Skyris line.Skyris 618C using the Sony ICX618AQA CCD SensorSome of the world's most advanced planetary imagers choose this Sony CCD sensor. It is perfectly suited for planetary imaging due to its speed, sensitivity, pixel size, and chip size. With the 618C, you'll be able to image up to 120 frames per second. You'll gather more data in less time, and capture brief moments of stable air to create the sharpest planetary images. This small chip features ample pixel size, making it the ideal match for long focal length telescopes like the Schmidt-Cassegrain and EdgeHD.One-Shot ColorThe Skyris 618C is a one-shot color camera. That means you can capture full-color images instantly. There's no need to spend time imaging the same target multiple times to capture different colors. You also won't need to invest in filters and a filter wheel, making the 618C an economical choice. Skyris cameras do not have an optical window. This makes cleaning your camera easier and ensures maximum light transmission with no risk of internal reflections.Check out the availableSkyris IR-Block Filter, designed especially for Skyris one-shot color cameras.Included Celestron iCap SoftwareAll Skyris cameras include Celestron iCap capture software and stacking software, for Windows systems only. iCap software allows you to easily control the camera, snap your images or movie file, and export them. Next, you'll bring your images or movies into the stacking software, where you can automatically filter the best images and stack them to create your masterpiece.Using Skyris as an AutoguiderEquipped with Sony EXview HAD CCD sensors, Skyris cameras make excellent autoguiders. If used with a Celestron mount,Skyris can be connected as a DirectShow device or WDM-style webcam.Simply plug the hand controller into the supplied serial cable and use aUSB to RS-232 Adapter(not included). The camera works with popular software like MaxIm DL or freeware like PHD Guiding. Other non-Celestron mounts work with a GPUSB available from Shoestring Astronomy to use with the same software programs, instantly turning your Skyris camera into a high-end autoguider that plugs into the ST-4 autoguider port on your mount.",
+                            "price": "499.95",
+                            "type": "simple"
+                        },
+                        "categories": []
+                    },
+                    {
+                        "id": "535de9b46b82540b0048d036",
+                        "sku": "clarastream-CEL-95511",
+                        "name": "Celestron Skyris 618M",
+                        "type": "simple",
+                        "userId": "5301ddc1df759c16008b4578",
+                        "variation": 0,
+                        "images": [],
+                        "price": "499.95",
+                        "description": "Whether you're an advanced user or a beginner, you'll love creating beautiful astroimages with the Skyris astronomical CCD camera. Capture the Sun, Moon, and planets like never before and create crisp, high-resolution images. Skyris cameras are the first to offer ultra-fast USB 3.0 connections combined with the most popular Sony CCD chips used for planetary imaging. Skyris also features a Celestron-designed camera body which helps dissipate heat to minimize the effect of thermal noise on the CCD.Celestron Partners with The Imaging SourceFor years, The Imaging Source has provided amateur astronomers with high-quality CCD cameras that elevate amateur planetary imaging from a casual hobby into an art form. The Imaging Source's astronomical cameras are known for high quality, value, and performance. Now, Celestron is proud to partner with The Imaging Source on the Skyris line.Skyris 618C using the Sony ICX618ALA CCD SensorSome of the world's most advanced planetary imagers choose this Sony CCD sensor. It is perfectly suited for planetary imaging due to its speed, sensitivity, pixel size, and chip size. With the 618C, you'll be able to image up to 120 frames per second. You'll gather more data in less time, and capture brief moments of stable air to create the sharpest planetary images. This small chip features ample pixel size, making it the ideal match for long focal length telescopes like the Schmidt-Cassegrain and EdgeHD. Monochrome Sensor for Maximum SensitivityThe Skyris 618M is a monochrome camera, offering you the most senstivity for capturing the best possible astroimages. Either use the camera by itself to capture stunning  black-and-white images of the Moon and planets, or attach your own filters and filter wheel to create your own color planetary images. Celestron has designed the Skyris Filter Wheel as the perfect companion to Skyris monochrome cameras.Skyris cameras do not have an optical window. This makes cleaning your camera easier and ensures maximum light transmission with no risk of internal reflections.Included Celestron iCap SoftwareAll Skyris cameras include Celestron iCap capture software and stacking software, for Windows systems only. iCap software allows you to easily control the camera, snap your images or movie file, and export them. Next, you'll bring your images or movies into the stacking software, where you can automatically filter the best images and stack them to create your masterpiece.Using Skyris as an AutoguiderEquipped with Sony EXview HAD CCD sensors, Skyris cameras make excellent autoguiders.  If used with a Celestron mount, Skyris can be connected as a DirectShow device or WDM-style webcam. Simply plug the hand controller into the supplied serial cable and use a USB to RS-232 Adapter (not included).  The camera works with popular software like MaxIm DL or freeware like PHD Guiding. Other non-Celestron mounts work with a GPUSB available from Shoestring Astronomy to use with the same software programs, instantly turning your Skyris camera into a high-end autoguider that plugs into the ST-4 autoguider port on your mount. Learn more on our Support Tab.  Included accessories: 1.25\" nosepiece, iCap software CD, 10' USB 3.0 cable, instruction manual.",
+                        "shortDescription": "Quick OverviewIndustry-acclaimed Sony EXview HAD ICX618ALA monochrome CCD sensorHigh-speed USB 3.0 connection provides fastest possible frame rate (also backwards compatible with USB 2.0)Downloads up to 120 frames per second, acquiring more data in less time12-bit image output provides superior dynamic rangeIncludes capture and stacking software",
+                        "status": "Disabled",
+                        "extraOptions": {
+                            "status": "Disabled",
+                            "short_description": "Quick OverviewIndustry-acclaimed Sony EXview HAD ICX618ALA monochrome CCD sensorHigh-speed USB 3.0 connection provides fastest possible frame rate (also backwards compatible with USB 2.0)Downloads up to 120 frames per second, acquiring more data in less time12-bit image output provides superior dynamic rangeIncludes capture and stacking software",
+                            "description": "Whether you're an advanced user or a beginner, you'll love creating beautiful astroimages with the Skyris astronomical CCD camera. Capture the Sun, Moon, and planets like never before and create crisp, high-resolution images. Skyris cameras are the first to offer ultra-fast USB 3.0 connections combined with the most popular Sony CCD chips used for planetary imaging. Skyris also features a Celestron-designed camera body which helps dissipate heat to minimize the effect of thermal noise on the CCD.Celestron Partners with The Imaging SourceFor years, The Imaging Source has provided amateur astronomers with high-quality CCD cameras that elevate amateur planetary imaging from a casual hobby into an art form. The Imaging Source's astronomical cameras are known for high quality, value, and performance. Now, Celestron is proud to partner with The Imaging Source on the Skyris line.Skyris 618C using the Sony ICX618ALA CCD SensorSome of the world's most advanced planetary imagers choose this Sony CCD sensor. It is perfectly suited for planetary imaging due to its speed, sensitivity, pixel size, and chip size. With the 618C, you'll be able to image up to 120 frames per second. You'll gather more data in less time, and capture brief moments of stable air to create the sharpest planetary images. This small chip features ample pixel size, making it the ideal match for long focal length telescopes like the Schmidt-Cassegrain and EdgeHD. Monochrome Sensor for Maximum SensitivityThe Skyris 618M is a monochrome camera, offering you the most senstivity for capturing the best possible astroimages. Either use the camera by itself to capture stunning  black-and-white images of the Moon and planets, or attach your own filters and filter wheel to create your own color planetary images. Celestron has designed the Skyris Filter Wheel as the perfect companion to Skyris monochrome cameras.Skyris cameras do not have an optical window. This makes cleaning your camera easier and ensures maximum light transmission with no risk of internal reflections.Included Celestron iCap SoftwareAll Skyris cameras include Celestron iCap capture software and stacking software, for Windows systems only. iCap software allows you to easily control the camera, snap your images or movie file, and export them. Next, you'll bring your images or movies into the stacking software, where you can automatically filter the best images and stack them to create your masterpiece.Using Skyris as an AutoguiderEquipped with Sony EXview HAD CCD sensors, Skyris cameras make excellent autoguiders.  If used with a Celestron mount, Skyris can be connected as a DirectShow device or WDM-style webcam. Simply plug the hand controller into the supplied serial cable and use a USB to RS-232 Adapter (not included).  The camera works with popular software like MaxIm DL or freeware like PHD Guiding. Other non-Celestron mounts work with a GPUSB available from Shoestring Astronomy to use with the same software programs, instantly turning your Skyris camera into a high-end autoguider that plugs into the ST-4 autoguider port on your mount. Learn more on our Support Tab.  Included accessories: 1.25\" nosepiece, iCap software CD, 10' USB 3.0 cable, instruction manual.",
+                            "price": "499.95",
+                            "type": "simple"
+                        },
+                        "categories": []
+                    },
+                    {
+                        "id": "535de9b36b82540b0048d033",
+                        "sku": "clarastream-CEL-44444",
+                        "name": "Celestron Skyris 618C - Canada",
+                        "type": "simple",
+                        "userId": "5301ddc1df759c16008b4578",
+                        "variation": 0,
+                        "images": [],
+                        "price": "499.95",
+                        "description": "Whether you're an advanced user or a beginner, you'll love creating beautiful astroimages with the Skyris astronomical CCD camera. Capture the Sun, Moon, and planets like never before and create crisp, high-resolution images. Skyris cameras are the first to offer ultra-fast USB 3.0 connections combined with the most popular Sony CCD chips used for planetary imaging.Skyris also features a Celestron-designed camera body which helps dissipate heat to minimize the effect of thermal noise on the CCD.Celestron Partners with The Imaging SourceFor years, The Imaging Source has provided amateur astronomers with high-quality CCD cameras that elevate amateur planetary imaging from a casual hobby into an art form. The Imaging Source's astronomical cameras are known for high quality, value, and performance. Now, Celestron is proud to partner with The Imaging Source on the Skyris line.Skyris 618C using the Sony ICX618AQA CCD SensorSome of the world's most advanced planetary imagers choose this Sony CCD sensor. It is perfectly suited for planetary imaging due to its speed, sensitivity, pixel size, and chip size. With the 618C, you'll be able to image up to 120 frames per second. You'll gather more data in less time, and capture brief moments of stable air to create the sharpest planetary images. This small chip features ample pixel size, making it the ideal match for long focal length telescopes like the Schmidt-Cassegrain and EdgeHD.One-Shot ColorThe Skyris 618C is a one-shot color camera. That means you can capture full-color images instantly. There's no need to spend time imaging the same target multiple times to capture different colors. You also won't need to invest in filters and a filter wheel, making the 618C an economical choice. Skyris cameras do not have an optical window. This makes cleaning your camera easier and ensures maximum light transmission with no risk of internal reflections.Check out the availableSkyris IR-Block Filter, designed especially for Skyris one-shot color cameras.Included Celestron iCap SoftwareAll Skyris cameras include Celestron iCap capture software and stacking software, for Windows systems only. iCap software allows you to easily control the camera, snap your images or movie file, and export them. Next, you'll bring your images or movies into the stacking software, where you can automatically filter the best images and stack them to create your masterpiece.Using Skyris as an AutoguiderEquipped with Sony EXview HAD CCD sensors, Skyris cameras make excellent autoguiders. If used with a Celestron mount,Skyris can be connected as a DirectShow device or WDM-style webcam.Simply plug the hand controller into the supplied serial cable and use aUSB to RS-232 Adapter(not included). The camera works with popular software like MaxIm DL or freeware like PHD Guiding. Other non-Celestron mounts work with a GPUSB available from Shoestring Astronomy to use with the same software programs, instantly turning your Skyris camera into a high-end autoguider that plugs into the ST-4 autoguider port on your mount.",
+                        "shortDescription": "Quick Overview    Industry-acclaimed Sony EXview HAD ICX618AQA color CCD sensor    High-speed USB 3.0 connection provides fastest possible frame rate (also backwards compatible with USB 2.0)    Downloads up to 120 frames per second, acquiring more data in less time    12-bit image output provides superior dynamic range    Includes capture and stacking software",
+                        "status": "Enabled",
+                        "extraOptions": {
+                            "status": "Enabled",
+                            "short_description": "Quick Overview    Industry-acclaimed Sony EXview HAD ICX618AQA color CCD sensor    High-speed USB 3.0 connection provides fastest possible frame rate (also backwards compatible with USB 2.0)    Downloads up to 120 frames per second, acquiring more data in less time    12-bit image output provides superior dynamic range    Includes capture and stacking software",
+                            "description": "Whether you're an advanced user or a beginner, you'll love creating beautiful astroimages with the Skyris astronomical CCD camera. Capture the Sun, Moon, and planets like never before and create crisp, high-resolution images. Skyris cameras are the first to offer ultra-fast USB 3.0 connections combined with the most popular Sony CCD chips used for planetary imaging.Skyris also features a Celestron-designed camera body which helps dissipate heat to minimize the effect of thermal noise on the CCD.Celestron Partners with The Imaging SourceFor years, The Imaging Source has provided amateur astronomers with high-quality CCD cameras that elevate amateur planetary imaging from a casual hobby into an art form. The Imaging Source's astronomical cameras are known for high quality, value, and performance. Now, Celestron is proud to partner with The Imaging Source on the Skyris line.Skyris 618C using the Sony ICX618AQA CCD SensorSome of the world's most advanced planetary imagers choose this Sony CCD sensor. It is perfectly suited for planetary imaging due to its speed, sensitivity, pixel size, and chip size. With the 618C, you'll be able to image up to 120 frames per second. You'll gather more data in less time, and capture brief moments of stable air to create the sharpest planetary images. This small chip features ample pixel size, making it the ideal match for long focal length telescopes like the Schmidt-Cassegrain and EdgeHD.One-Shot ColorThe Skyris 618C is a one-shot color camera. That means you can capture full-color images instantly. There's no need to spend time imaging the same target multiple times to capture different colors. You also won't need to invest in filters and a filter wheel, making the 618C an economical choice. Skyris cameras do not have an optical window. This makes cleaning your camera easier and ensures maximum light transmission with no risk of internal reflections.Check out the availableSkyris IR-Block Filter, designed especially for Skyris one-shot color cameras.Included Celestron iCap SoftwareAll Skyris cameras include Celestron iCap capture software and stacking software, for Windows systems only. iCap software allows you to easily control the camera, snap your images or movie file, and export them. Next, you'll bring your images or movies into the stacking software, where you can automatically filter the best images and stack them to create your masterpiece.Using Skyris as an AutoguiderEquipped with Sony EXview HAD CCD sensors, Skyris cameras make excellent autoguiders. If used with a Celestron mount,Skyris can be connected as a DirectShow device or WDM-style webcam.Simply plug the hand controller into the supplied serial cable and use aUSB to RS-232 Adapter(not included). The camera works with popular software like MaxIm DL or freeware like PHD Guiding. Other non-Celestron mounts work with a GPUSB available from Shoestring Astronomy to use with the same software programs, instantly turning your Skyris camera into a high-end autoguider that plugs into the ST-4 autoguider port on your mount.",
+                            "price": "499.95",
+                            "type": "simple"
+                        },
+                        "categories": []
+                    },
+                    {
+                        "id": "535de9b56b82540b0048d03a",
+                        "sku": "clarastream-CEL-99999-c2",
+                        "name": "Celestron Skyris 618C",
+                        "type": "simple",
+                        "userId": "5301ddc1df759c16008b4578",
+                        "variation": 0,
+                        "images": [],
+                        "price": "499.95",
+                        "description": "Whether you're an advanced user or a beginner, you'll love creating beautiful astroimages with the Skyris astronomical CCD camera. Capture the Sun, Moon, and planets like never before and create crisp, high-resolution images. Skyris cameras are the first to offer ultra-fast USB 3.0 connections combined with the most popular Sony CCD chips used for planetary imaging.Skyris also features a Celestron-designed camera body which helps dissipate heat to minimize the effect of thermal noise on the CCD.Celestron Partners with The Imaging SourceFor years, The Imaging Source has provided amateur astronomers with high-quality CCD cameras that elevate amateur planetary imaging from a casual hobby into an art form. The Imaging Source's astronomical cameras are known for high quality, value, and performance. Now, Celestron is proud to partner with The Imaging Source on the Skyris line.Skyris 618C using the Sony ICX618AQA CCD SensorSome of the world's most advanced planetary imagers choose this Sony CCD sensor. It is perfectly suited for planetary imaging due to its speed, sensitivity, pixel size, and chip size. With the 618C, you'll be able to image up to 120 frames per second. You'll gather more data in less time, and capture brief moments of stable air to create the sharpest planetary images. This small chip features ample pixel size, making it the ideal match for long focal length telescopes like the Schmidt-Cassegrain and EdgeHD.One-Shot ColorThe Skyris 618C is a one-shot color camera. That means you can capture full-color images instantly. There's no need to spend time imaging the same target multiple times to capture different colors. You also won't need to invest in filters and a filter wheel, making the 618C an economical choice. Skyris cameras do not have an optical window. This makes cleaning your camera easier and ensures maximum light transmission with no risk of internal reflections.Check out the availableSkyris IR-Block Filter, designed especially for Skyris one-shot color cameras.Included Celestron iCap SoftwareAll Skyris cameras include Celestron iCap capture software and stacking software, for Windows systems only. iCap software allows you to easily control the camera, snap your images or movie file, and export them. Next, you'll bring your images or movies into the stacking software, where you can automatically filter the best images and stack them to create your masterpiece.Using Skyris as an AutoguiderEquipped with Sony EXview HAD CCD sensors, Skyris cameras make excellent autoguiders. If used with a Celestron mount,Skyris can be connected as a DirectShow device or WDM-style webcam.Simply plug the hand controller into the supplied serial cable and use aUSB to RS-232 Adapter(not included). The camera works with popular software like MaxIm DL or freeware like PHD Guiding. Other non-Celestron mounts work with a GPUSB available from Shoestring Astronomy to use with the same software programs, instantly turning your Skyris camera into a high-end autoguider that plugs into the ST-4 autoguider port on your mount.",
+                        "shortDescription": "Quick Overview    Industry-acclaimed Sony EXview HAD ICX618AQA color CCD sensor    High-speed USB 3.0 connection provides fastest possible frame rate (also backwards compatible with USB 2.0)    Downloads up to 120 frames per second, acquiring more data in less time    12-bit image output provides superior dynamic range    Includes capture and stacking software",
+                        "status": "Enabled",
+                        "extraOptions": {
+                            "status": "Enabled",
+                            "short_description": "Quick Overview    Industry-acclaimed Sony EXview HAD ICX618AQA color CCD sensor    High-speed USB 3.0 connection provides fastest possible frame rate (also backwards compatible with USB 2.0)    Downloads up to 120 frames per second, acquiring more data in less time    12-bit image output provides superior dynamic range    Includes capture and stacking software",
+                            "description": "Whether you're an advanced user or a beginner, you'll love creating beautiful astroimages with the Skyris astronomical CCD camera. Capture the Sun, Moon, and planets like never before and create crisp, high-resolution images. Skyris cameras are the first to offer ultra-fast USB 3.0 connections combined with the most popular Sony CCD chips used for planetary imaging.Skyris also features a Celestron-designed camera body which helps dissipate heat to minimize the effect of thermal noise on the CCD.Celestron Partners with The Imaging SourceFor years, The Imaging Source has provided amateur astronomers with high-quality CCD cameras that elevate amateur planetary imaging from a casual hobby into an art form. The Imaging Source's astronomical cameras are known for high quality, value, and performance. Now, Celestron is proud to partner with The Imaging Source on the Skyris line.Skyris 618C using the Sony ICX618AQA CCD SensorSome of the world's most advanced planetary imagers choose this Sony CCD sensor. It is perfectly suited for planetary imaging due to its speed, sensitivity, pixel size, and chip size. With the 618C, you'll be able to image up to 120 frames per second. You'll gather more data in less time, and capture brief moments of stable air to create the sharpest planetary images. This small chip features ample pixel size, making it the ideal match for long focal length telescopes like the Schmidt-Cassegrain and EdgeHD.One-Shot ColorThe Skyris 618C is a one-shot color camera. That means you can capture full-color images instantly. There's no need to spend time imaging the same target multiple times to capture different colors. You also won't need to invest in filters and a filter wheel, making the 618C an economical choice. Skyris cameras do not have an optical window. This makes cleaning your camera easier and ensures maximum light transmission with no risk of internal reflections.Check out the availableSkyris IR-Block Filter, designed especially for Skyris one-shot color cameras.Included Celestron iCap SoftwareAll Skyris cameras include Celestron iCap capture software and stacking software, for Windows systems only. iCap software allows you to easily control the camera, snap your images or movie file, and export them. Next, you'll bring your images or movies into the stacking software, where you can automatically filter the best images and stack them to create your masterpiece.Using Skyris as an AutoguiderEquipped with Sony EXview HAD CCD sensors, Skyris cameras make excellent autoguiders. If used with a Celestron mount,Skyris can be connected as a DirectShow device or WDM-style webcam.Simply plug the hand controller into the supplied serial cable and use aUSB to RS-232 Adapter(not included). The camera works with popular software like MaxIm DL or freeware like PHD Guiding. Other non-Celestron mounts work with a GPUSB available from Shoestring Astronomy to use with the same software programs, instantly turning your Skyris camera into a high-end autoguider that plugs into the ST-4 autoguider port on your mount.",
+                            "price": "499.95",
+                            "type": "simple"
+                        },
+                        "categories": []
+                    },
+                    {
+                        "id": "535de9b36b82540b0048d032",
+                        "sku": "clarastream-CEL-52248",
+                        "name": "Celestron Ultima 65 - 45 Degree Spotting Scope",
+                        "type": "simple",
+                        "userId": "5301ddc1df759c16008b4578",
+                        "variation": 0,
+                        "images": [],
+                        "price": "169.95",
+                        "description": "65 mm Refractor Spotting Scope    Multi-Coated optics    45 viewing angle    18-55x zoom eyepiece",
+                        "shortDescription": "Quick Overview    Sight tube for quick targeting    Waterproof    Soft carrying case    Limited Lifetime Warranty",
+                        "status": "Disabled",
+                        "extraOptions": {
+                            "status": "Disabled",
+                            "short_description": "Quick Overview    Sight tube for quick targeting    Waterproof    Soft carrying case    Limited Lifetime Warranty",
+                            "description": "65 mm Refractor Spotting Scope    Multi-Coated optics    45 viewing angle    18-55x zoom eyepiece",
+                            "price": "169.95",
+                            "type": "simple"
+                        },
+                        "categories": []
+                    },
+                    {
+                        "id": "535de9b66b82540b0048d03b",
+                        "sku": "clarastream-CEL-99510",
+                        "name": "Celestron Skyris 618C",
+                        "type": "simple",
+                        "userId": "5301ddc1df759c16008b4578",
+                        "variation": 0,
+                        "images": [],
+                        "price": "499.95",
+                        "description": "Whether you're an advanced user or a beginner, you'll love creating beautiful astroimages with the Skyris astronomical CCD camera. Capture the Sun, Moon, and planets like never before and create crisp, high-resolution images. Skyris cameras are the first to offer ultra-fast USB 3.0 connections combined with the most popular Sony CCD chips used for planetary imaging.Skyris also features a Celestron-designed camera body which helps dissipate heat to minimize the effect of thermal noise on the CCD.Celestron Partners with The Imaging SourceFor years, The Imaging Source has provided amateur astronomers with high-quality CCD cameras that elevate amateur planetary imaging from a casual hobby into an art form. The Imaging Source's astronomical cameras are known for high quality, value, and performance. Now, Celestron is proud to partner with The Imaging Source on the Skyris line.Skyris 618C using the Sony ICX618AQA CCD SensorSome of the world's most advanced planetary imagers choose this Sony CCD sensor. It is perfectly suited for planetary imaging due to its speed, sensitivity, pixel size, and chip size. With the 618C, you'll be able to image up to 120 frames per second. You'll gather more data in less time, and capture brief moments of stable air to create the sharpest planetary images. This small chip features ample pixel size, making it the ideal match for long focal length telescopes like the Schmidt-Cassegrain and EdgeHD.One-Shot ColorThe Skyris 618C is a one-shot color camera. That means you can capture full-color images instantly. There's no need to spend time imaging the same target multiple times to capture different colors. You also won't need to invest in filters and a filter wheel, making the 618C an economical choice. Skyris cameras do not have an optical window. This makes cleaning your camera easier and ensures maximum light transmission with no risk of internal reflections.Check out the availableSkyris IR-Block Filter, designed especially for Skyris one-shot color cameras.Included Celestron iCap SoftwareAll Skyris cameras include Celestron iCap capture software and stacking software, for Windows systems only. iCap software allows you to easily control the camera, snap your images or movie file, and export them. Next, you'll bring your images or movies into the stacking software, where you can automatically filter the best images and stack them to create your masterpiece.Using Skyris as an AutoguiderEquipped with Sony EXview HAD CCD sensors, Skyris cameras make excellent autoguiders. If used with a Celestron mount,Skyris can be connected as a DirectShow device or WDM-style webcam.Simply plug the hand controller into the supplied serial cable and use aUSB to RS-232 Adapter(not included). The camera works with popular software like MaxIm DL or freeware like PHD Guiding. Other non-Celestron mounts work with a GPUSB available from Shoestring Astronomy to use with the same software programs, instantly turning your Skyris camera into a high-end autoguider that plugs into the ST-4 autoguider port on your mount.",
+                        "shortDescription": "Quick Overview    Industry-acclaimed Sony EXview HAD ICX618AQA color CCD sensor    High-speed USB 3.0 connection provides fastest possible frame rate (also backwards compatible with USB 2.0)    Downloads up to 120 frames per second, acquiring more data in less time    12-bit image output provides superior dynamic range    Includes capture and stacking software",
+                        "status": "Enabled",
+                        "extraOptions": {
+                            "status": "Enabled",
+                            "short_description": "Quick Overview    Industry-acclaimed Sony EXview HAD ICX618AQA color CCD sensor    High-speed USB 3.0 connection provides fastest possible frame rate (also backwards compatible with USB 2.0)    Downloads up to 120 frames per second, acquiring more data in less time    12-bit image output provides superior dynamic range    Includes capture and stacking software",
+                            "description": "Whether you're an advanced user or a beginner, you'll love creating beautiful astroimages with the Skyris astronomical CCD camera. Capture the Sun, Moon, and planets like never before and create crisp, high-resolution images. Skyris cameras are the first to offer ultra-fast USB 3.0 connections combined with the most popular Sony CCD chips used for planetary imaging.Skyris also features a Celestron-designed camera body which helps dissipate heat to minimize the effect of thermal noise on the CCD.Celestron Partners with The Imaging SourceFor years, The Imaging Source has provided amateur astronomers with high-quality CCD cameras that elevate amateur planetary imaging from a casual hobby into an art form. The Imaging Source's astronomical cameras are known for high quality, value, and performance. Now, Celestron is proud to partner with The Imaging Source on the Skyris line.Skyris 618C using the Sony ICX618AQA CCD SensorSome of the world's most advanced planetary imagers choose this Sony CCD sensor. It is perfectly suited for planetary imaging due to its speed, sensitivity, pixel size, and chip size. With the 618C, you'll be able to image up to 120 frames per second. You'll gather more data in less time, and capture brief moments of stable air to create the sharpest planetary images. This small chip features ample pixel size, making it the ideal match for long focal length telescopes like the Schmidt-Cassegrain and EdgeHD.One-Shot ColorThe Skyris 618C is a one-shot color camera. That means you can capture full-color images instantly. There's no need to spend time imaging the same target multiple times to capture different colors. You also won't need to invest in filters and a filter wheel, making the 618C an economical choice. Skyris cameras do not have an optical window. This makes cleaning your camera easier and ensures maximum light transmission with no risk of internal reflections.Check out the availableSkyris IR-Block Filter, designed especially for Skyris one-shot color cameras.Included Celestron iCap SoftwareAll Skyris cameras include Celestron iCap capture software and stacking software, for Windows systems only. iCap software allows you to easily control the camera, snap your images or movie file, and export them. Next, you'll bring your images or movies into the stacking software, where you can automatically filter the best images and stack them to create your masterpiece.Using Skyris as an AutoguiderEquipped with Sony EXview HAD CCD sensors, Skyris cameras make excellent autoguiders. If used with a Celestron mount,Skyris can be connected as a DirectShow device or WDM-style webcam.Simply plug the hand controller into the supplied serial cable and use aUSB to RS-232 Adapter(not included). The camera works with popular software like MaxIm DL or freeware like PHD Guiding. Other non-Celestron mounts work with a GPUSB available from Shoestring Astronomy to use with the same software programs, instantly turning your Skyris camera into a high-end autoguider that plugs into the ST-4 autoguider port on your mount.",
+                            "price": "499.95",
+                            "type": "simple"
+                        },
+                        "categories": []
+                    },
+                    {
+                        "id": "535de9b26b82540b0048d02f",
+                        "sku": "clarastream-CEL-52252",
+                        "name": "CelestronUltima 100 - 45 Degree Spotting Scope",
+                        "type": "simple",
+                        "userId": "5301ddc1df759c16008b4578",
+                        "variation": 0,
+                        "images": [],
+                        "price": "399.95",
+                        "description": "100 mm Refractor Spotting Scope    Multi-Coated optics    45 viewing angle    22-66x zoom eyepiece",
+                        "shortDescription": "Quick OverviewSight tube for quick targetingWaterproofSoft carrying caseLimited Lifetime Warranty",
+                        "status": "Enabled",
+                        "extraOptions": {
+                            "status": "Enabled",
+                            "short_description": "Quick OverviewSight tube for quick targetingWaterproofSoft carrying caseLimited Lifetime Warranty",
+                            "description": "100 mm Refractor Spotting Scope    Multi-Coated optics    45 viewing angle    22-66x zoom eyepiece",
+                            "price": "399.95",
+                            "type": "simple"
+                        },
+                        "categories": []
+                    },
+                    {
+                        "id": "535de9b46b82540b0048d035",
+                        "sku": "clarastream-CEL-55555",
+                        "name": "Celestron Skyris 618C - Canada",
+                        "type": "simple",
+                        "userId": "5301ddc1df759c16008b4578",
+                        "variation": 0,
+                        "images": [],
+                        "price": "499.95",
+                        "description": "Whether you're an advanced user or a beginner, you'll love creating beautiful astroimages with the Skyris astronomical CCD camera. Capture the Sun, Moon, and planets like never before and create crisp, high-resolution images. Skyris cameras are the first to offer ultra-fast USB 3.0 connections combined with the most popular Sony CCD chips used for planetary imaging.Skyris also features a Celestron-designed camera body which helps dissipate heat to minimize the effect of thermal noise on the CCD.Celestron Partners with The Imaging SourceFor years, The Imaging Source has provided amateur astronomers with high-quality CCD cameras that elevate amateur planetary imaging from a casual hobby into an art form. The Imaging Source's astronomical cameras are known for high quality, value, and performance. Now, Celestron is proud to partner with The Imaging Source on the Skyris line.Skyris 618C using the Sony ICX618AQA CCD SensorSome of the world's most advanced planetary imagers choose this Sony CCD sensor. It is perfectly suited for planetary imaging due to its speed, sensitivity, pixel size, and chip size. With the 618C, you'll be able to image up to 120 frames per second. You'll gather more data in less time, and capture brief moments of stable air to create the sharpest planetary images. This small chip features ample pixel size, making it the ideal match for long focal length telescopes like the Schmidt-Cassegrain and EdgeHD.One-Shot ColorThe Skyris 618C is a one-shot color camera. That means you can capture full-color images instantly. There's no need to spend time imaging the same target multiple times to capture different colors. You also won't need to invest in filters and a filter wheel, making the 618C an economical choice. Skyris cameras do not have an optical window. This makes cleaning your camera easier and ensures maximum light transmission with no risk of internal reflections.Check out the availableSkyris IR-Block Filter, designed especially for Skyris one-shot color cameras.Included Celestron iCap SoftwareAll Skyris cameras include Celestron iCap capture software and stacking software, for Windows systems only. iCap software allows you to easily control the camera, snap your images or movie file, and export them. Next, you'll bring your images or movies into the stacking software, where you can automatically filter the best images and stack them to create your masterpiece.Using Skyris as an AutoguiderEquipped with Sony EXview HAD CCD sensors, Skyris cameras make excellent autoguiders. If used with a Celestron mount,Skyris can be connected as a DirectShow device or WDM-style webcam.Simply plug the hand controller into the supplied serial cable and use aUSB to RS-232 Adapter(not included). The camera works with popular software like MaxIm DL or freeware like PHD Guiding. Other non-Celestron mounts work with a GPUSB available from Shoestring Astronomy to use with the same software programs, instantly turning your Skyris camera into a high-end autoguider that plugs into the ST-4 autoguider port on your mount.",
+                        "shortDescription": "Quick Overview    Industry-acclaimed Sony EXview HAD ICX618AQA color CCD sensor    High-speed USB 3.0 connection provides fastest possible frame rate (also backwards compatible with USB 2.0)    Downloads up to 120 frames per second, acquiring more data in less time    12-bit image output provides superior dynamic range    Includes capture and stacking software",
+                        "status": "Enabled",
+                        "extraOptions": {
+                            "status": "Enabled",
+                            "short_description": "Quick Overview    Industry-acclaimed Sony EXview HAD ICX618AQA color CCD sensor    High-speed USB 3.0 connection provides fastest possible frame rate (also backwards compatible with USB 2.0)    Downloads up to 120 frames per second, acquiring more data in less time    12-bit image output provides superior dynamic range    Includes capture and stacking software",
+                            "description": "Whether you're an advanced user or a beginner, you'll love creating beautiful astroimages with the Skyris astronomical CCD camera. Capture the Sun, Moon, and planets like never before and create crisp, high-resolution images. Skyris cameras are the first to offer ultra-fast USB 3.0 connections combined with the most popular Sony CCD chips used for planetary imaging.Skyris also features a Celestron-designed camera body which helps dissipate heat to minimize the effect of thermal noise on the CCD.Celestron Partners with The Imaging SourceFor years, The Imaging Source has provided amateur astronomers with high-quality CCD cameras that elevate amateur planetary imaging from a casual hobby into an art form. The Imaging Source's astronomical cameras are known for high quality, value, and performance. Now, Celestron is proud to partner with The Imaging Source on the Skyris line.Skyris 618C using the Sony ICX618AQA CCD SensorSome of the world's most advanced planetary imagers choose this Sony CCD sensor. It is perfectly suited for planetary imaging due to its speed, sensitivity, pixel size, and chip size. With the 618C, you'll be able to image up to 120 frames per second. You'll gather more data in less time, and capture brief moments of stable air to create the sharpest planetary images. This small chip features ample pixel size, making it the ideal match for long focal length telescopes like the Schmidt-Cassegrain and EdgeHD.One-Shot ColorThe Skyris 618C is a one-shot color camera. That means you can capture full-color images instantly. There's no need to spend time imaging the same target multiple times to capture different colors. You also won't need to invest in filters and a filter wheel, making the 618C an economical choice. Skyris cameras do not have an optical window. This makes cleaning your camera easier and ensures maximum light transmission with no risk of internal reflections.Check out the availableSkyris IR-Block Filter, designed especially for Skyris one-shot color cameras.Included Celestron iCap SoftwareAll Skyris cameras include Celestron iCap capture software and stacking software, for Windows systems only. iCap software allows you to easily control the camera, snap your images or movie file, and export them. Next, you'll bring your images or movies into the stacking software, where you can automatically filter the best images and stack them to create your masterpiece.Using Skyris as an AutoguiderEquipped with Sony EXview HAD CCD sensors, Skyris cameras make excellent autoguiders. If used with a Celestron mount,Skyris can be connected as a DirectShow device or WDM-style webcam.Simply plug the hand controller into the supplied serial cable and use aUSB to RS-232 Adapter(not included). The camera works with popular software like MaxIm DL or freeware like PHD Guiding. Other non-Celestron mounts work with a GPUSB available from Shoestring Astronomy to use with the same software programs, instantly turning your Skyris camera into a high-end autoguider that plugs into the ST-4 autoguider port on your mount.",
+                            "price": "499.95",
+                            "type": "simple"
+                        },
+                        "categories": []
+                    },
+                    {
+                        "id": "535de9b26b82540b0048d030",
+                        "sku": "clarastream-CEL-55250",
+                        "name": "Celestron Ultima 80 - 45 Degree Spotting Scope",
+                        "type": "simple",
+                        "userId": "5301ddc1df759c16008b4578",
+                        "variation": 0,
+                        "images": [],
+                        "price": "229.95",
+                        "description": "80 mm Refractor Spotting ScopeMulti-Coated optics45 viewing angle20-60x zoom eyepiece",
+                        "shortDescription": "Quick OverviewSight tube for quick targeting    Waterproof    Soft carrying case    Limited Lifetime Warranty",
+                        "status": "Disabled",
+                        "extraOptions": {
+                            "status": "Disabled",
+                            "short_description": "Quick OverviewSight tube for quick targeting    Waterproof    Soft carrying case    Limited Lifetime Warranty",
+                            "description": "80 mm Refractor Spotting ScopeMulti-Coated optics45 viewing angle20-60x zoom eyepiece",
+                            "price": "229.95",
+                            "type": "simple"
+                        },
+                        "categories": []
+                    },
+                    {
+                        "id": "535de9b46b82540b0048d037",
+                        "sku": "clarastream-CEL-93648",
+                        "name": "Celestron Off-Axis Guider",
+                        "type": "simple",
+                        "userId": "5301ddc1df759c16008b4578",
+                        "variation": 0,
+                        "images": [],
+                        "price": "1.99",
+                        "description": "The Off-Axis Guider is an essential astroimaging accessory for long focal length telescopes that require the most accurate guiding possible. The Celestron Off-Axis Guider uses a prism to intercept a small portion of the telescopes focal plane (outside the field of view of the main imaging camera) to locate a guide star. Any movement seen by the guide star will be the exact same movement seen by the imaging camera. Guiding this way will correct for tracking errors, as well as opto-mechanical errors or flexure. The result: better astroimages with pinpoint round stars.Off-Axis Guiders have been around for a long time, but typically pose three main challenges:    Finding a guide star from the far edges of the telescopes focal plane can be difficult, considering the small field of view and sometimes less-than-ideal illumination.    Getting both imaging camera and autoguider to reach focus with one another is time consuming and sometimes requires experimentation.    Additional spacers and adapters are usually required for your particular camera, telescope, and autoguider, which adds to cost and complexity.Celestron's Off-Axis Guider addresses these challenges by:    Providing a large 12.5mm prism that can be adjusted to move closer to the center of the telescopes focal plane, depending on the size of the imaging camera. This results in brighter guide stars, with the help of the large prism to fully illuminate the autoguider sensor.    Featuring a high-quality, fixed-orientation Helical focuser. This provides extremely smooth and accurate focus of the autoguider without changing (or twisting) the autoguider camera orientation.    Including all the needed spacers and adapters are included for most common imaging configurations, including DSLR cameras, Nightscape CCD cameras, and more. The following adapters are included: SCT/EdgeHD, female M48, female M42 (T-thread), male M48, male M42 (T-thread), 3 T-thread spacers Additonal SpecificationsHelical Focuser Travel: 8mmTelescope Connection: M42 T-thread, M48, and SCT/EdgeHDAutoguider Connection: M42 T-thread, and standard 1.25\" adapterCamera Connection: M42 T-thread, and M48",
+                        "shortDescription": "Quick Overview    Most accurate way to guide  improved accuracy compared to using a separate guide scope.    12.5mm multi-coated prism with aluminized backing for maximum reflectivity and illumination to the autoguider    Fixed-orientation helical focuser for easy, smooth and accurate autoguider focus    48mm clear aperture supports full frame cameras without vignetting    Includes adapters with the correct spacing for DSLR cameras, Nightscape CCD and other popular astroimaging cameras    Ideal for Schmidt- Cassegrain and EdgeHD telescopes",
+                        "status": "Disabled",
+                        "extraOptions": {
+                            "status": "Disabled",
+                            "short_description": "Quick Overview    Most accurate way to guide  improved accuracy compared to using a separate guide scope.    12.5mm multi-coated prism with aluminized backing for maximum reflectivity and illumination to the autoguider    Fixed-orientation helical focuser for easy, smooth and accurate autoguider focus    48mm clear aperture supports full frame cameras without vignetting    Includes adapters with the correct spacing for DSLR cameras, Nightscape CCD and other popular astroimaging cameras    Ideal for Schmidt- Cassegrain and EdgeHD telescopes",
+                            "description": "The Off-Axis Guider is an essential astroimaging accessory for long focal length telescopes that require the most accurate guiding possible. The Celestron Off-Axis Guider uses a prism to intercept a small portion of the telescopes focal plane (outside the field of view of the main imaging camera) to locate a guide star. Any movement seen by the guide star will be the exact same movement seen by the imaging camera. Guiding this way will correct for tracking errors, as well as opto-mechanical errors or flexure. The result: better astroimages with pinpoint round stars.Off-Axis Guiders have been around for a long time, but typically pose three main challenges:    Finding a guide star from the far edges of the telescopes focal plane can be difficult, considering the small field of view and sometimes less-than-ideal illumination.    Getting both imaging camera and autoguider to reach focus with one another is time consuming and sometimes requires experimentation.    Additional spacers and adapters are usually required for your particular camera, telescope, and autoguider, which adds to cost and complexity.Celestron's Off-Axis Guider addresses these challenges by:    Providing a large 12.5mm prism that can be adjusted to move closer to the center of the telescopes focal plane, depending on the size of the imaging camera. This results in brighter guide stars, with the help of the large prism to fully illuminate the autoguider sensor.    Featuring a high-quality, fixed-orientation Helical focuser. This provides extremely smooth and accurate focus of the autoguider without changing (or twisting) the autoguider camera orientation.    Including all the needed spacers and adapters are included for most common imaging configurations, including DSLR cameras, Nightscape CCD cameras, and more. The following adapters are included: SCT/EdgeHD, female M48, female M42 (T-thread), male M48, male M42 (T-thread), 3 T-thread spacers Additonal SpecificationsHelical Focuser Travel: 8mmTelescope Connection: M42 T-thread, M48, and SCT/EdgeHDAutoguider Connection: M42 T-thread, and standard 1.25\" adapterCamera Connection: M42 T-thread, and M48",
+                            "price": "1.99",
+                            "type": "simple"
+                        },
+                        "categories": []
+                    },
+                    {
+                        "id": "535de9b26b82540b0048d031",
+                        "sku": "clarastream-CEL-93664",
+                        "name": "Celestron HD Pro Wedge",
+                        "type": "simple",
+                        "userId": "5301ddc1df759c16008b4578",
+                        "variation": 0,
+                        "images": [],
+                        "price": "399.95",
+                        "description": "Celestron's HD Pro Wedge is designed to support our fork mounted Schmidt Cassegrain Telescopes up to 11\".  The HD Pro Wedge provides a heavy duty, stable platform that is perfect for astroimaging and guarantees minimal vibration.  A low latitude range of 0-90 degrees makes this wedge functional for use at the equator.  Built-in features include altitude/azimuth adjustment controls with oversized knobs attached for easy polar alignment, a hand control holder that provides the option of placing on the wedge or the fork arm, a tilt plate for easier mounting of the telescope by simply rotating the scope onto the wedge, and a large 14 mm diameter latitude adjustment screw to add strength and stability while supplying less vibration and easier rotation with a heavy telescope.HD Pro Wedge - General Features    14 mm Diameter Latitude Adjustment Screw - Adds strength and stability.  Does not flex or bend providing less vibration and making it easier to rotate a heavy telescope.    0-90 Degree Latitude Range - Low latitude range, perfect for use at the equator.    Built-in Hand Control Holder - Allows user to place the hand control on the wedge or fork arm.  Hand control won't fall off when fork arm is angled towards the ground.    Tilt Plate - Recesses to fit base of telescope and base of scope drops into place just by rotating. Mounting telescope on wedge becomes easier.    Heavy Duty Side Plates - More rigid with more material provides less vibration while imaging.",
+                        "shortDescription": "Quick OverviewCelestron's HD Pro Wedge is designed to support our fork mounted Schmidt Cassegrain Telescopes up to 11\".",
+                        "status": "Enabled",
+                        "extraOptions": {
+                            "status": "Enabled",
+                            "short_description": "Quick OverviewCelestron's HD Pro Wedge is designed to support our fork mounted Schmidt Cassegrain Telescopes up to 11\".",
+                            "description": "Celestron's HD Pro Wedge is designed to support our fork mounted Schmidt Cassegrain Telescopes up to 11\".  The HD Pro Wedge provides a heavy duty, stable platform that is perfect for astroimaging and guarantees minimal vibration.  A low latitude range of 0-90 degrees makes this wedge functional for use at the equator.  Built-in features include altitude/azimuth adjustment controls with oversized knobs attached for easy polar alignment, a hand control holder that provides the option of placing on the wedge or the fork arm, a tilt plate for easier mounting of the telescope by simply rotating the scope onto the wedge, and a large 14 mm diameter latitude adjustment screw to add strength and stability while supplying less vibration and easier rotation with a heavy telescope.HD Pro Wedge - General Features    14 mm Diameter Latitude Adjustment Screw - Adds strength and stability.  Does not flex or bend providing less vibration and making it easier to rotate a heavy telescope.    0-90 Degree Latitude Range - Low latitude range, perfect for use at the equator.    Built-in Hand Control Holder - Allows user to place the hand control on the wedge or fork arm.  Hand control won't fall off when fork arm is angled towards the ground.    Tilt Plate - Recesses to fit base of telescope and base of scope drops into place just by rotating. Mounting telescope on wedge becomes easier.    Heavy Duty Side Plates - More rigid with more material provides less vibration while imaging.",
+                            "price": "399.95",
+                            "type": "simple"
+                        },
+                        "categories": []
+                    },
+                    {
+                        "id": "535de9b26b82540b0048d02e",
+                        "sku": "clarastream-CEL-95520",
+                        "name": "Celestron Skyris 5-Position 1.25\" Filter Wheel",
+                        "type": "simple",
+                        "userId": "5301ddc1df759c16008b4578",
+                        "variation": 0,
+                        "images": [],
+                        "price": "1.99",
+                        "description": "Monochrome CCD cameras require the use of multiple filters to achieve a color image. A filter wheel makes it easy to toggle between filters while imaging, without moving your camera or telescope. Simply turn the dial to scroll through your available filters. If you need to swap out a filter, just open the quick-release door to the internal carousel, replace the filter, and get back to imaging in no time. The filter wheel's sturdy, machined aluminum construction and high-quality components, including spring-loaded steel ball bearings, will give you years of enjoyment.We've designed this 5-position filter as the perfect complement to our Skyris monochrome CCD cameras. The wheel threads directly to your Skyris camera body. However, it's also compatible with a variety of other imaging cameras thanks to the included T-thread and C-thread adapters. Accepts most standard 1.25\" format filters. Filters not included.",
+                        "shortDescription": "Quick Overview    Holds up to 5 1.25\" filters for great imaging flexibility    All-new industrial design with high-quality mechanics    Simple, trouble-free operation    Change filters easily by removing the quick-release door    Compatible with Skyris monochrome cameras, and includes several adapters for other camera setups    Filters not included",
+                        "status": "Disabled",
+                        "extraOptions": {
+                            "status": "Disabled",
+                            "short_description": "Quick Overview    Holds up to 5 1.25\" filters for great imaging flexibility    All-new industrial design with high-quality mechanics    Simple, trouble-free operation    Change filters easily by removing the quick-release door    Compatible with Skyris monochrome cameras, and includes several adapters for other camera setups    Filters not included",
+                            "description": "Monochrome CCD cameras require the use of multiple filters to achieve a color image. A filter wheel makes it easy to toggle between filters while imaging, without moving your camera or telescope. Simply turn the dial to scroll through your available filters. If you need to swap out a filter, just open the quick-release door to the internal carousel, replace the filter, and get back to imaging in no time. The filter wheel's sturdy, machined aluminum construction and high-quality components, including spring-loaded steel ball bearings, will give you years of enjoyment.We've designed this 5-position filter as the perfect complement to our Skyris monochrome CCD cameras. The wheel threads directly to your Skyris camera body. However, it's also compatible with a variety of other imaging cameras thanks to the included T-thread and C-thread adapters. Accepts most standard 1.25\" format filters. Filters not included.",
+                            "price": "1.99",
+                            "type": "simple"
+                        },
+                        "categories": []
+                    }
+                ]
+            }  
+
+# Group Project 
+A single Project object that contains a the total number of SKUs associated within the project.
+
+## A single project [/project/{projectId}]
+
+### Retrieve one project [GET]
+
++ Parameters
+    + projectId (required, string) ... projectId of the project to retreive. 
+
++ Response 200 (application/json)
+
+        {
+            "error": null,
+            "project": {
+                "id": "5346af0efbefxxxxxxxxxxxx",
+                "userId": "50f74b1be49xxxxxxxxxx",
+                "cartId": "5346afda4fbefxxxxxxxxxxxx"
+                "templateId": "5277f0584xxxxxxxxf",
+                "totalSKUCount": 15991,
+                "totalRecordCount": 15991,
+                "productCount": 15991
+            }
+        }
+        
+### Add a project [POST]
+Create a new Project. 
+ + Request (application/json) 
+ 
+        {
+            "name": "My Project Name",
+            "templateId": "5277f05844455555xxxxx"
+        }
+    
+ + Response 200 (application/json)
+
+        {
+            "error": null,
+            "project": {
+                "id": "534e9a98e3xxxxxxx",
+                "name": "My Project Name",
+                "userId": "50f74b1be4xxxxxx",
+                "templateId": "5277f05844455555xxxxx",
+                "totalSKUCount": 0,
+                "totalRecordCount": 0,
+                "productCount": 0
+            }
+        }
+        
+## A project's product list [/project/{projectId}/products{?type}{&offset}{&limit}]
+Obtains the list of products associated with a particular project, allowing for indication of type and paging behaviors.
+
++ Parameters
+    + type (optional, string) ... type of products to retrieve in the list. 
+    + offset (optional, int) ... starting index for products to include within the list (useful for paging). 
+    + limit (optional, int) ... maximum number of products to include in the retrieved list (useful for paging). 
+
+### Retrieve a list of products [GET]
+
++ Response 200 (application/json)
+    + Body 
+    
+            {
+                "errors": null,
+                "products": [
+                    {
+                        "id": "530aca41a665d393008b456c",
+                        "sku": "clarastream-CEL-11111",
+                        "name": "CelestronUltima 100 - 45 Degree Spotting Scope - 2",
+                        "type": "configurable",
+                        "projectId": "530aca4066f67529008b45b9",
+                        "userId": "5301ddc1df759c16008b4578",
+                        "variation": 0,
+                        "imageMain": "clarastream-CEL-11111.jpg",
+                        "images": null,
+                        "price": "399.95",
+                        "description": "100 mm Refractor Spotting Scope    Multi-Coated optics    45 viewing angle    22-66x zoom eyepiece",
+                        "shortDescription": "Quick OverviewSight tube for quick targetingWaterproofSoft carrying caseLimited Lifetime Warranty",
+                        "status": "Disabled",
+                        "extraOptions": {
+                            "store": "",
+                            "product_websites": "",
+                            "attribute_set": "",
+                            "type": "configurable",
+                            "links_group_skus": "",
+                            "links_related_skus": "",
+                            "links_configurable_skus": [
+                                "clarastream-CEL-11111-c0",
+                                "clarastream-CEL-11111-c1",
+                                "clarastream-CEL-99999-c2"
+                            ],
+                            "configurable_attributes": [
+                                "color",
+                                "manufacturer"
+                            ],
+                            "color": "",
+                            "description": "100 mm Refractor Spotting Scope    Multi-Coated optics    45 viewing angle    22-66x zoom eyepiece",
+                            "manufacturer": "Celestron",
+                            "price": "399.95",
+                            "short_description": "Quick OverviewSight tube for quick targetingWaterproofSoft carrying caseLimited Lifetime Warranty",
+                            "status": "Disabled",
+                            "tax_class_id": "Taxable Goods",
+                            "visibility": "Catalog, Search",
+                            "image_label": "",
+                            "bingo": "WHOO",
+                            "qty": "",
+                            "weight": "9",
+                            "_tier_price_qty": "",
+                            "_tier_price_price": "",
+                            "custom_options": [
+                                {
+                                    "title": "Test Time",
+                                    "type": "time",
+                                    "is_require": 0,
+                                    "sort_order": 0,
+                                    "additional_fields": [
+                                        {
+                                            "title": "Time text",
+                                            "price": null,
+                                            "price_type": "fixed",
+                                            "sku": null,
+                                            "sort_order": null
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        "categories": [
+                            {
+                                "id": "530a5da3e1e7893c008b456c",
+                                "categoryId": 45,
+                                "name": "Default",
+                                "parentCategory": {
+                                    "id": "530a5da3e1e7893c008b456b",
+                                    "categoryId": 2,
+                                    "name": "Default Category"
+                                },
+                                "ancestors": [
+                                    {
+                                        "id": "530a5da3e1e7893c008b456a",
+                                        "categoryId": 1,
+                                        "name": "Root Catalog"
+                                    },
+                                    {
+                                        "id": "530a5da3e1e7893c008b456b",
+                                        "categoryId": 2,
+                                        "name": "Default Category"
+                                    }
+                                ],
+                                "children": [
+                                    {
+                                        "id": "530a5da3e1e7893c008b456d",
+                                        "categoryId": 46,
+                                        "name": "Category1"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "id": "530aca42a665d393008b456f",
+                        "sku": "clarastream-CEL-95520",
+                        "name": "Celestron Skyris 5-Position 1.25\" Filter Wheel",
+                        "type": "simple",
+                        "projectId": "530aca4066f67529008b45b9",
+                        "userId": "5301ddc1df759c16008b4578",
+                        "variation": 0,
+                        "imageMain": "clarastream-CEL-95520.jpg",
+                        "images": null,
+                        "price": "1.99",
+                        "description": "Monochrome CCD cameras require the use of multiple filters to achieve a color image. A filter wheel makes it easy to toggle between filters while imaging, without moving your camera or telescope. Simply turn the dial to scroll through your available filters. If you need to swap out a filter, just open the quick-release door to the internal carousel, replace the filter, and get back to imaging in no time. The filter wheel's sturdy, machined aluminum construction and high-quality components, including spring-loaded steel ball bearings, will give you years of enjoyment.We've designed this 5-position filter as the perfect complement to our Skyris monochrome CCD cameras. The wheel threads directly to your Skyris camera body. However, it's also compatible with a variety of other imaging cameras thanks to the included T-thread and C-thread adapters. Accepts most standard 1.25\" format filters. Filters not included.",
+                        "shortDescription": "Quick Overview    Holds up to 5 1.25\" filters for great imaging flexibility    All-new industrial design with high-quality mechanics    Simple, trouble-free operation    Change filters easily by removing the quick-release door    Compatible with Skyris monochrome cameras, and includes several adapters for other camera setups    Filters not included",
+                        "status": "Disabled",
+                        "extraOptions": {
+                            "store": "",
+                            "product_websites": "",
+                            "attribute_set": "",
+                            "type": "simple",
+                            "links_group_skus": "",
+                            "links_related_skus": "",
+                            "links_configurable_skus": "",
+                            "configurable_attributes": "",
+                            "color": "",
+                            "description": "Monochrome CCD cameras require the use of multiple filters to achieve a color image. A filter wheel makes it easy to toggle between filters while imaging, without moving your camera or telescope. Simply turn the dial to scroll through your available filters. If you need to swap out a filter, just open the quick-release door to the internal carousel, replace the filter, and get back to imaging in no time. The filter wheel's sturdy, machined aluminum construction and high-quality components, including spring-loaded steel ball bearings, will give you years of enjoyment.We've designed this 5-position filter as the perfect complement to our Skyris monochrome CCD cameras. The wheel threads directly to your Skyris camera body. However, it's also compatible with a variety of other imaging cameras thanks to the included T-thread and C-thread adapters. Accepts most standard 1.25\" format filters. Filters not included.",
+                            "manufacturer": "Celestron",
+                            "price": "1.99",
+                            "short_description": "Quick Overview    Holds up to 5 1.25\" filters for great imaging flexibility    All-new industrial design with high-quality mechanics    Simple, trouble-free operation    Change filters easily by removing the quick-release door    Compatible with Skyris monochrome cameras, and includes several adapters for other camera setups    Filters not included",
+                            "status": "Disabled",
+                            "tax_class_id": "Taxable Goods",
+                            "visibility": "Catalog, Search",
+                            "image_label": "",
+                            "bingo": "WHOO",
+                            "qty": "0",
+                            "weight": "4",
+                            "_tier_price_qty": "",
+                            "_tier_price_price": "",
+                            "custom_options": [
+                                {
+                                    "title": "Test Area",
+                                    "type": "area",
+                                    "is_require": 0,
+                                    "sort_order": 0,
+                                    "additional_fields": [
+                                        {
+                                            "title": "Test It",
+                                            "price": null,
+                                            "price_type": "fixed",
+                                            "sku": null,
+                                            "sort_order": null
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        "categories": [
+                            {
+                                "id": "530a5da3e1e7893c008b456d",
+                                "categoryId": 46,
+                                "name": "Category1",
+                                "parentCategory": {
+                                    "id": "530a5da3e1e7893c008b456c",
+                                    "categoryId": 45,
+                                    "name": "Default"
+                                },
+                                "ancestors": [
+                                    {
+                                        "id": "530a5da3e1e7893c008b456a",
+                                        "categoryId": 1,
+                                        "name": "Root Catalog"
+                                    },
+                                    {
+                                        "id": "530a5da3e1e7893c008b456b",
+                                        "categoryId": 2,
+                                        "name": "Default Category"
+                                    },
+                                    {
+                                        "id": "530a5da3e1e7893c008b456c",
+                                        "categoryId": 45,
+                                        "name": "Default"
+                                    }
+                                ],
+                                "children": []
+                            },
+                            {
+                                "id": "530a5da3e1e7893c008b456c",
+                                "categoryId": 45,
+                                "name": "Default",
+                                "parentCategory": {
+                                    "id": "530a5da3e1e7893c008b456b",
+                                    "categoryId": 2,
+                                    "name": "Default Category"
+                                },
+                                "ancestors": [
+                                    {
+                                        "id": "530a5da3e1e7893c008b456a",
+                                        "categoryId": 1,
+                                        "name": "Root Catalog"
+                                    },
+                                    {
+                                        "id": "530a5da3e1e7893c008b456b",
+                                        "categoryId": 2,
+                                        "name": "Default Category"
+                                    }
+                                ],
+                                "children": [
+                                    {
+                                        "id": "530a5da3e1e7893c008b456d",
+                                        "categoryId": 46,
+                                        "name": "Category1"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        
+## Template [/template/{templateId}]
+A single Template object that contains what attributes are mapped to a particular project for a particular cart.
+
++ Parameters
+    + templateId (required, string) ... templateId of the template to retreive. 
+
+### Retrieve one project [GET]
+
++ Response 200 (application/json)
+
+        {
+            "error": null,
+            "template": {
+                "id": "5277f05843xxxxxxxxxxx",
+                "name": "Staging 2 Template",
+                "userId": "50f74b1be49xxxxxxxxxx",
+                "extraOptions": {
+                    "category_ids": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "color": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": true
+                    },
+                    "cost": {
+                        "used": true,
+                        "type": "text-entry-money",
+                        "optional": true
+                    },
+                    "country_of_manufacture": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": true
+                    },
+                    "created_at": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": false
+                    },
+                    "custom_design": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": true
+                    },
+                    "custom_design_from": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "custom_design_to": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "custom_layout_update": {
+                        "used": true,
+                        "type": "text-area",
+                        "optional": true
+                    },
+                    "description": {
+                        "used": true,
+                        "type": "text-area",
+                        "optional": false
+                    },
+                    "enable_googlecheckout": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": true
+                    },
+                    "foo": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": true
+                    },
+                    "gift_message_available": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": true
+                    },
+                    "group_price": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "has_options": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "image_label": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "is_recurring": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": true
+                    },
+                    "links_exist": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "links_purchased_separately": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": false
+                    },
+                    "links_title": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": false
+                    },
+                    "manufacturer": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": true
+                    },
+                    "meta_description": {
+                        "used": true,
+                        "type": "text-area",
+                        "optional": true
+                    },
+                    "meta_keyword": {
+                        "used": true,
+                        "type": "text-area",
+                        "optional": true
+                    },
+                    "meta_title": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "minimal_price": {
+                        "used": true,
+                        "type": "text-entry-money",
+                        "optional": true
+                    },
+                    "msrp": {
+                        "used": true,
+                        "type": "text-entry-money",
+                        "optional": true
+                    },
+                    "msrp_display_actual_price_type": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": true
+                    },
+                    "msrp_enabled": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": true
+                    },
+                    "multi_color": {
+                        "used": true,
+                        "type": "multi-select",
+                        "optional": true
+                    },
+                    "news_from_date": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "news_to_date": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "old_id": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "options_container": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": true
+                    },
+                    "page_layout": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": true
+                    },
+                    "price": {
+                        "used": true,
+                        "type": "text-entry-money",
+                        "optional": false
+                    },
+                    "price_type": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": false
+                    },
+                    "price_view": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": false
+                    },
+                    "recurring_profile": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "required_options": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "samples_title": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": false
+                    },
+                    "shipment_type": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": false
+                    },
+                    "short_description": {
+                        "used": true,
+                        "type": "text-area",
+                        "optional": false
+                    },
+                    "size": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": true
+                    },
+                    "sku_type": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": false
+                    },
+                    "small_image_label": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "special_from_date": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "special_price": {
+                        "used": true,
+                        "type": "text-entry-money",
+                        "optional": true
+                    },
+                    "special_to_date": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "status": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": false
+                    },
+                    "tax_class_id": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": false
+                    },
+                    "thumbnail_label": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "tier_price": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "updated_at": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": false
+                    },
+                    "url_key": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "url_path": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "visibility": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": false
+                    },
+                    "weight": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": false
+                    },
+                    "weight_type": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": false
+                    }
+                }
+            }  
+        }
+
+#Group Image
+
+#Group Category
+
