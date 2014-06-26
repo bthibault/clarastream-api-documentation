@@ -14,10 +14,10 @@ There is no session based authentication until we make the switch to OAuth in up
 ## Creating an endpoint
 
 A good place to start is to make a "listener endpoint" for your application. This will receive operation requests from ClaraStream, such as starting a sync.
-Without creating this endpoint ClaraStream will have disabled functionality in the user interface. Users will not be able to login into ClaraStream and hit the sync button for instance. 
+Without creating this endpoint ClaraStream will have limited functionality in the user interface.
 
-The basic idea of syncing products to your website, is that a user tells ClaraStream to sync a specific data set. 
-ClaraStream then sends a request to your machine, and your machine then makes a request back to ClaraStream to pull down the data that was asked for. 
+The basic idea of syncing products to your website, is that a user signals ClaraStream to sync a specific data set. 
+ClaraStream then sends a request to your endpoint, and your remote endpoint then makes a request back to ClaraStream to pull down the data that was asked for. 
 Generally its much quicker to pull information to you. 
 
 Here is a sample endpoint using Node and Express: 
@@ -59,22 +59,22 @@ app.post('/sync', function(req, res) {
     };
 
     // Make an outgoing request to ask for products
-    var request = 
-    http.request(requestOptions, function(res) {
-        console.log('STATUS: ' + res.statusCode);
-          console.log('HEADERS: ' + JSON.stringify(res.headers));
-        res.setEncoding('utf8');
-        
-        res.on('data', function(chunk) {
-            responseStr += chunk;i'
-            console.log('Response: ' + chunk);
+    var post_req = 
+        http.request(requestOptions, function(res) {
+            console.log('STATUS: ' + res.statusCode);
+            console.log('HEADERS: ' + JSON.stringify(res.headers));
+            res.setEncoding('utf8');
+            
+            res.on('data', function(chunk) {
+                responseStr += chunk;i'
+                console.log('Response: ' + chunk);
+            });
+    
+            res.on('end', function() {
+                callback(responseStr);
+            })
+    
         });
-
-        res.on('end', function() {
-            callback(responseStr);
-        })
-
-    });
 
     post_req.on('error', function(err) {
              console.error('Problem with HTTP request: ' + e.message);
@@ -92,17 +92,17 @@ app.listen(3000);
 ### Basic 
 A general workflow for getting started with the ClaraStream API might look like this: 
 
-+ Create a request listener (see above). 
++ Create a request listener endpoint in your desired language / environment (see above). 
 + Create a new connection to your listener from within ClaraStream's UI.
-+ Push in categories from your site into ClaraStream via the API.
-+ Create a template using ClaraStream's API by first creating a blank template, 
-  then pushing product attributes to that template. 
++ Create categories from your site in ClaraStream via the API or ClaraStream's UI.
++ Create a template using ClaraStream's API or UI 
++ Create data attributes within the template
     + This allows front end users to manipulate and map your applications product data from within
       the ClaraStream UI.
-+ The ClaraStream UI user can now upload products which will map to categories and data points
-  and trigger sync that data. If you've set up a ClaraStream request listener, its now up to you
++ The ClaraStream UI user can now upload products through the UI which will map to categories and data attributes,
+  and trigger a sync operation on that data. If you've set up a ClaraStream request listener, its now up to you
   to get the products from a data set (Project) and use them in your particular application - most
-  likely inserting them into your shopping cart. 
+  likely inserting them into your product database. 
 
 
 # API Resources
