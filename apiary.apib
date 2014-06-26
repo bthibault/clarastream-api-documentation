@@ -1305,9 +1305,17 @@ accept virtually any data attribute.
 
 Each attribute is its own object, cotaining three key/value pairs:
 
-        used : {true , false}
-        type: {text-entry, text-area, dropdown, multi-select, text-entry-money}
-        optional: {true, false}
+            // defines, if the data attribute is used within ClaraStream for syncing and editing from the UI.
+            used: {true , false}
+            // defines the type for type checking and formating within ClaraStream
+            type: {text-entry, text-area, dropdown, multi-select, text-entry-money}
+            // defines whether a data attribute is required. If an attribute is required, and project
+            // sync is triggered. ClaraStream will issue a warning in the UI saying a particular sku is
+            // missing some required data
+            optional: {true, false}
+
+
+
 
 + Parameters
     + cartId (required, string) ... a particular endpoint or shopping cart id to associate to. 
@@ -1620,8 +1628,304 @@ Each attribute is its own object, cotaining three key/value pairs:
 
         {
             "error": null,
-            "token": "a14d7422257fccfab9371988",
-            "templateId": "5386351a4e41ac0e0074f71f"
+            "template": {
+                "id": "53ac760a5d0d980e004c898e",
+                "name": "Test Template",
+                "cartId": "5301ddffdf7xxxxxxxxxxxx",
+                "userId": "5301ddc1df7xxxxxxxxxxxx",
+                "extraOptions": {
+                    "category_ids": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "color": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": true
+                    },
+                    "cost": {
+                        "used": true,
+                        "type": "text-entry-money",
+                        "optional": true
+                    },
+                    "country_of_manufacture": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": true
+                    },
+                    "created_at": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": false
+                    },
+                    "custom_design": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": true
+                    },
+                    "custom_design_from": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "custom_design_to": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "custom_layout_update": {
+                        "used": true,
+                        "type": "text-area",
+                        "optional": true
+                    },
+                    "description": {
+                        "used": true,
+                        "type": "text-area",
+                        "optional": false
+                    },
+                    "enable_googlecheckout": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": true
+                    },
+                    "foo": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": true
+                    },
+                    "gift_message_available": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": true
+                    },
+                    "group_price": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "has_options": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "image_label": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "is_recurring": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": true
+                    },
+                    "links_exist": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "links_purchased_separately": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": false
+                    },
+                    "links_title": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": false
+                    },
+                    "manufacturer": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": true
+                    },
+                    "meta_description": {
+                        "used": true,
+                        "type": "text-area",
+                        "optional": true
+                    },
+                    "meta_keyword": {
+                        "used": true,
+                        "type": "text-area",
+                        "optional": true
+                    },
+                    "meta_title": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "minimal_price": {
+                        "used": true,
+                        "type": "text-entry-money",
+                        "optional": true
+                    },
+                    "msrp": {
+                        "used": true,
+                        "type": "text-entry-money",
+                        "optional": true
+                    },
+                    "msrp_display_actual_price_type": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": true
+                    },
+                    "msrp_enabled": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": true
+                    },
+                    "multi_color": {
+                        "used": true,
+                        "type": "multi-select",
+                        "optional": true
+                    },
+                    "news_from_date": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "news_to_date": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "old_id": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "options_container": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": true
+                    },
+                    "page_layout": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": true
+                    },
+                    "price": {
+                        "used": true,
+                        "type": "text-entry-money",
+                        "optional": false
+                    },
+                    "price_type": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": false
+                    },
+                    "price_view": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": false
+                    },
+                    "recurring_profile": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "required_options": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "samples_title": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": false
+                    },
+                    "shipment_type": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": false
+                    },
+                    "short_description": {
+                        "used": true,
+                        "type": "text-area",
+                        "optional": false
+                    },
+                    "size": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": true
+                    },
+                    "sku_type": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": false
+                    },
+                    "small_image_label": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "special_from_date": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "special_price": {
+                        "used": true,
+                        "type": "text-entry-money",
+                        "optional": true
+                    },
+                    "special_to_date": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "status": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": false
+                    },
+                    "tax_class_id": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": false
+                    },
+                    "thumbnail_label": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "tier_price": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "updated_at": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": false
+                    },
+                    "url_key": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "url_path": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                    },
+                    "visibility": {
+                        "used": true,
+                        "type": "dropdown",
+                        "optional": false
+                    },
+                    "weight": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": false
+                    },
+                    "weight_type": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": false
+                    }
+                }
+            }
         }
 
 #Group Category
