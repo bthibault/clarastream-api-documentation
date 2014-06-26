@@ -167,6 +167,37 @@ top level 'container' that groups a set of Products. Read more about Projects be
                 }
             }
 
+### Update a single product [PUT]
+
+Update an existing product by productId. This is an idempotent PUT operation, and therefore an entire document object should be 
+sent, not just the fields that need updating. For specific formatting requirements see *A New Product* below. 
+ 
++ Request (application/json)
+
+        {
+            "productData":
+                {
+                    "sku": "ABC123new",
+                    "name": "Sample Updated Product", 
+                    "categories": [{"id": "537b80e3dcd78954008b456c"}]},
+                    "extraOptions":{"randomKey" : "random value" },
+                    "mainImageURL":"https://www.google.com/images/srpr/logo11w.png",
+                    "subImageURLs":
+                    [
+                         "https://s3.amazonaws.com/wwwclarastream.com/wp-content/uploads/2014/03/g3216.png",
+                         "https://s3.amazonaws.com/wwwclarastream.com/wp-content/uploads/2014/03/chart-arrow.png"
+                    ]
+                }
+        }
+        
++ Response 200 (application/json)
+
+        {
+            "error": null,
+            "numAffected": 1,
+            "imageProcessToken": "10f11da62742cb31d7bc9adc"
+        }
+
 
 ## A Product by Sku [/product/sku/{sku}]
 
@@ -271,6 +302,7 @@ Same as above, only retrieving by sku (which should be unique) rather than produ
                     ]
                 }
             }
+
 
 ## A New Product [/product]
 
@@ -650,7 +682,7 @@ of a particular product), allowing for indication of type and paging behaviors.
 # Group Project 
 
 **WARNING!** - Some functionality within Projects **will be deprecated**. You should primarily be using base products directly within the API. 
-Moving forward products that are part of a project will be merged into a base product from within the ClaraStream UI. 
+Moving forward products that are part of a project will be merged into a base product from within the ClaraStream UI - then be availabe for syncinc. 
 
 ## A Project [/project/{projectId}]
 
