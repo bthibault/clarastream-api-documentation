@@ -992,7 +992,7 @@ A single Template object that contains what attributes are mapped to a particula
 + Parameters
     + templateId (required, string) ... templateId of the template to retreive. 
 
-### Retrieve one project [GET]
+### Retrieve one template [GET]
 
 + Response 200 (application/json)
 
@@ -1297,6 +1297,38 @@ A single Template object that contains what attributes are mapped to a particula
             }  
         }
 
+### Update a template [PUT]
+
+Update an existing template by templateId. This is an idempotent PUT operation, and therefore an entire document object should be 
+sent, not just the fields that need updating. For specific formatting requirements see *A New Template* below. 
+
+ + Request (application/json)
+  
+        {
+            "templateData": {
+                "name": "Staging Template",
+                "extraOptions": {
+                    "category_ids": {
+                        "used": true,
+                        "type": "text-entry",
+                        "optional": true
+                      },
+                     "random_attribute":
+                      {
+                          "used": false,
+                          "type": "text-area",
+                          "optional": true
+                      }
+                }
+            }
+        }
+
+ + Response 
+ 
+        {
+            "error": null,
+            "numAffected": 1
+        }
 
 ## A New Template [/template/cartId/{cartId}]
 Create a new template. This holds the data point mappings between ClaraStream and your endpoint.
@@ -1927,6 +1959,7 @@ Each attribute is its own object, cotaining three key/value pairs:
                 }
             }
         }
+        
 
 #Group Category
 
