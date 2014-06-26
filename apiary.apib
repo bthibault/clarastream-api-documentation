@@ -170,10 +170,12 @@ top level 'container' that groups a set of Products. Read more about Projects be
 
 ## A Product by Sku [/product/sku/{sku}]
 
-+ Paramaters
-    + sku (required, string) ... SKU of the product to retrieve. 
+Same as above, only retrieving by sku (which should be unique) rather than productId. 
 
-### Get a Product by SKU [GET]
+### Retreive a singgle product by SKU [GET]
+
++ Parameters
+    + sku (required, string) ... SKU of the product to retrieve. 
 
 + Response 200 (application/json)
     + Body
@@ -272,6 +274,14 @@ top level 'container' that groups a set of Products. Read more about Projects be
 
 ## A New Product [/product]
 
+Method for creating a new Base Product. See sample Post Request for formatting.
+'categories' should be an array of objects containing the ClaraStream category ids to associate with the product.
+
+Providing publically accessible image urls is currently the only way to associate images with a product. ClaraStream will grab the images from that location, and download them locally. 
+
+Any other data attributes for a product can be created for the product. Simply added them to an "extraOptions" object. 
+
+
 ### Create a single base product [POST]
 
 + Request (application/json)
@@ -282,6 +292,7 @@ top level 'container' that groups a set of Products. Read more about Projects be
                     "sku": "ABC123",
                     "name": "Sample Product", 
                     "categories": [{"id": "537b80e3dcd78954008b456c"}]},
+                    "extraOptions":{"randomKey" : "random value" },
                     "mainImageURL":"https://www.google.com/images/srpr/logo11w.png",
                     "subImageURLs":
                     [
