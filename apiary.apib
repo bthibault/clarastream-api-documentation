@@ -2326,22 +2326,30 @@ by your shopping cart or endpoint.
 
  + Request (application/json)
  
-        {
-            "categoryData": {
-                "name": "Root Category",
-                "categoryId": 1
-            }
+        { 
+           "categoryData": { 
+              "name": "Test This",
+               "categoryId":1 
+            } 
         }
 
 
  + Response 200 (application/json) 
  
         {
-            "error": null, 
+            "error": null,
             "category": {
-                "id": "536b0858904b6e27008b456b",
-                "name": "Root Category", 
-                "categoryId": 1
+                "id": "53ac94175d0d980e004c8991",
+                "categoryId": 1,
+                "name": "Test This",
+                "cartId": "538d62e24e6axxxxxxxxxxx",
+                "parentCategory": {
+                    "id": null,
+                    "categoryId": null,
+                    "name": null
+                },
+                "ancestors": [],
+                "children": []
             }
         }
 
@@ -2368,11 +2376,25 @@ Adds a new child category to a parent. A Root category must created first, then 
  + Response 200 (application/json) 
  
         {
-            "error": null, 
+            "error": null,
             "category": {
-                "id": "536b0858904b6e27008b4569",
-                "name": "Child Category", 
-                "categoryId": 2
+                "id": "53ac952e5d0d980e004c8994",
+                "categoryId": 1438,
+                "name": "Test This",
+                "cartId": "538d62e24e6a8a16008b4569",
+                "parentCategory": {
+                    "id": "53ac94175d0d980e004c8991",
+                    "categoryId": 1,
+                    "name": "Test This"
+                },
+                "ancestors": [
+                    {
+                        id": "53ac94175d0d980e004c8991",
+                        "categoryId": 1,
+                        "name": "Test This"
+                    }
+                ],
+                "children": []
             }
         }
 
