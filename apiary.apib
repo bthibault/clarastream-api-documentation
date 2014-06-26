@@ -11,6 +11,10 @@ There is no session based authentication until we make the switch to OAuth in up
 
 # Getting Started
 
+## SDK and Sample Code
+
+Contact the ClaraStream team - support@clarastream.com - for more sample code and our PHP Software Development Kit for the API. 
+
 ## Creating an endpoint
 
 A good place to start is to make a "listener endpoint" for your application. This will receive operation requests from ClaraStream, such as starting a sync.
@@ -172,7 +176,10 @@ top level 'container' that groups a set of Products. Read more about Projects be
 Update an existing product by productId. This is an idempotent PUT operation, and therefore an entire document object should be 
 sent, not just the fields that need updating. For specific formatting requirements see *A New Product* below. 
  
-+ Request (application/json)
+ + Parameters
+    + productId (required, string) ... productId of the product to retreive. 
+    
+ + Request (application/json)
 
         {
             "productData":
@@ -190,7 +197,7 @@ sent, not just the fields that need updating. For specific formatting requiremen
                 }
         }
         
-+ Response 200 (application/json)
+ + Response 200 (application/json)
 
         {
             "error": null,
@@ -2254,6 +2261,14 @@ For ClaraStreams purposes when referencing a specific category use the "id" fiel
             ]
         }
 
+### Delete a Category Tree [DELETE]
+
+ + Response 200 (application/json)
+
+        {
+            "error": null
+        }
+
 ## A Category [/category/{categoryId}]
 
 + Parameters
@@ -2297,4 +2312,67 @@ For ClaraStreams purposes when referencing a specific category use the "id" fiel
             }
         }
  
+## A New Root Category [/category/cartId/{cartId}]
+
+A new Root Category must be added to a cart before any other children categories can be added. The root is the main category of the tree that every other category stems from. 
+A Root Category is created by providing the cartId. "id" refers to the internal ClaraStream ID that can be used to reference the API. The "categoryId" is an category id used 
+by your shopping cart or endpoint. 
+
++ Parameters
+    + cartId (required, string) ... the ClaraStream cartId to add the Root Category.
+    
+
+### Create a Root Category [POST]
+
+ + Request (application/json)
  
+        {
+            "categoryData": {
+                "name": "Root Category",
+                "categoryId": 1
+            }
+        }
+
+
+ + Response 200 (application/json) 
+ 
+        {
+            "error": null, 
+            "category": {
+                "id": "536b0858904b6e27008b456b",
+                "name": "Root Category", 
+                "categoryId": 1
+            }
+        }
+
+## A New Child Category [/category/{parentId}]
+
+Adds a new child category to a parent. A Root category must created first, then a category can be added to the root id, and a sub-category added to that. 
+
++ Parameters
+    + parentId (required, string) ... the ClaraStream id of a parent category.
+    
+
+### Create a Category [POST]
+
+ + Request (application/json)
+ 
+        {
+            "categoryData": {
+                "name": "Child Category",
+                "categoryId": 2
+            }
+        }
+
+
+ + Response 200 (application/json) 
+ 
+        {
+            "error": null, 
+            "category": {
+                "id": "536b0858904b6e27008b4569",
+                "name": "Child Category", 
+                "categoryId": 2
+            }
+        }
+
